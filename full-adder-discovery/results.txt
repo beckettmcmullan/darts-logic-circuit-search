@@ -1,0 +1,154 @@
+15/64 searches extracted an exact full adder
+
+5 gates (found 1x):
+    n0 = XNOR(Cin, B)
+    n1 = OR(n0, A)
+    n2 = OR(Cin, B)
+    n5 = XNOR(n0, A)
+    n6 = AND(n2, n1)
+    Sum = n5
+    Cout = n6
+
+6 gates (found 1x):
+    n0 = AND(B, Cin)
+    n2 = XNOR(B, Cin)
+    n3 = OR(n0, A)
+    n4 = XNOR(n2, A)
+    n5 = OR(Cin, B)
+    n6 = AND(n5, n3)
+    Sum = n4
+    Cout = n6
+
+6 gates (found 1x):
+    n0 = AND(B, Cin)
+    n1 = OR(B, Cin)
+    n2 = OR(n0, A)
+    n4 = XNOR(B, Cin)
+    n5 = XNOR(n4, A)
+    n6 = AND(n1, n2)
+    Sum = n5
+    Cout = n6
+
+6 gates (found 1x):
+    n0 = XOR(B, A)
+    n2 = AND(n0, Cin)
+    n3 = AND(B, A)
+    n4 = OR(n3, n2)
+    n5 = AND(Cin, Cin)
+    n6 = XOR(n0, n5)
+    Sum = n6
+    Cout = n4
+
+6 gates (found 1x):
+    n0 = AND(Cin, A)
+    n1 = OR(Cin, A)
+    n2 = AND(B, n1)
+    n4 = XOR(B, A)
+    n5 = OR(n0, n2)
+    n6 = XOR(n4, Cin)
+    Sum = n6
+    Cout = n5
+
+6 gates (found 1x):
+    n0 = AND(Cin, B)
+    n1 = OR(A, n0)
+    n2 = XOR(Cin, B)
+    n3 = XOR(n2, A)
+    n6 = OR(B, Cin)
+    n7 = AND(n6, n1)
+    Sum = n3
+    Cout = n7
+
+6 gates (found 1x):
+    n1 = AND(Cin, A)
+    n2 = OR(A, Cin)
+    n3 = XNOR(n2, B)
+    n4 = XNOR(n3, n1)
+    n5 = AND(n2, B)
+    n7 = OR(n1, n5)
+    Sum = n4
+    Cout = n7
+
+6 gates (found 1x):
+    n0 = NAND(Cin, B)
+    n1 = OR(B, Cin)
+    n2 = XNOR(n1, A)
+    n5 = XOR(n0, n2)
+    n6 = NAND(n0, n5)
+    n7 = AND(n1, n6)
+    Sum = n5
+    Cout = n7
+
+6 gates (found 1x):
+    n0 = OR(Cin, B)
+    n1 = AND(n0, A)
+    n2 = XOR(Cin, B)
+    n3 = AND(B, Cin)
+    n5 = OR(n3, n1)
+    n6 = XOR(n2, A)
+    Sum = n6
+    Cout = n5
+
+6 gates (found 1x):
+    n0 = XOR(B, Cin)
+    n1 = OR(A, A)
+    n2 = AND(A, n0)
+    n3 = XOR(n1, n0)
+    n4 = AND(B, Cin)
+    n6 = OR(n4, n2)
+    Sum = n3
+    Cout = n6
+
+6 gates (found 1x):
+    n0 = OR(A, Cin)
+    n1 = AND(B, n0)
+    n2 = XOR(A, B)
+    n3 = AND(Cin, A)
+    n5 = XOR(n2, Cin)
+    n6 = OR(n1, n3)
+    Sum = n5
+    Cout = n6
+
+6 gates (found 1x):
+    n0 = XNOR(A, Cin)
+    n2 = AND(A, Cin)
+    n3 = XNOR(n0, B)
+    n4 = OR(Cin, A)
+    n5 = OR(B, n2)
+    n7 = AND(n4, n5)
+    Sum = n3
+    Cout = n7
+
+7 gates (found 1x):
+    n0 = AND(A, Cin)
+    n1 = OR(n0, B)
+    n2 = OR(Cin, A)
+    n4 = AND(n2, n1)
+    n5 = OR(Cin, Cin)
+    n6 = XOR(A, B)
+    n7 = XOR(n6, n5)
+    Sum = n7
+    Cout = n4
+
+7 gates (found 1x):
+    n0 = XNOR(A, B)
+    n1 = OR(Cin, A)
+    n2 = AND(Cin, A)
+    n3 = AND(Cin, n2)
+    n4 = XNOR(n0, Cin)
+    n5 = OR(n3, B)
+    n6 = AND(n1, n5)
+    Sum = n4
+    Cout = n6
+
+7 gates (found 1x):
+    n0 = OR(B, A)
+    n1 = AND(A, B)
+    n2 = XNOR(Cin, n1)
+    n3 = AND(n0, Cin)
+    n4 = OR(B, A)
+    n5 = XNOR(n2, n4)
+    n7 = OR(n1, n3)
+    Sum = n5
+    Cout = n7
+
