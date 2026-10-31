@@ -9,8 +9,7 @@ include a correct five-gate design.
 
 Every computer adds numbers using small circuits called **full adders**. A full
 adder takes three bits (A, B, and a "carry in" from the previous column) and
-produces two bits: the **Sum** and the **Carry out** to the next column. It is
-the same "carry the one" step you learned for adding by hand, done in hardware.
+produces two bits: the **Sum** and the **Carry out** to the next column.
 
 Circuits like this are built from **logic gates** such as AND, OR, XOR and NOT.
 Engineers normally design them by hand or with rule-based tools. This project
