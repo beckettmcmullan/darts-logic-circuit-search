@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1420" height="1560" viewBox="0 0 1420 1560" font-family="Helvetica,Arial,sans-serif" xml:space="preserve">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker></defs>
+<rect width="1420" height="1560" fill="white"/>
+<text x="60" y="42" font-size="24" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Photon-stream range core: one pixel, one photon per clock cycle</text>
+<text x="60" y="68" font-size="14" font-weight="normal" text-anchor="start" fill="#475569" style="white-space:pre">Differentiable logic-gate network with DARTS routing, synthesized to ASAP7 standard cells. Example numbers from rule-s4-seed0 (police batch, randomized conditions).</text>
+<rect x="770" y="88" width="16" height="16" rx="3" fill="#dcfce7" stroke="#334155"/>
+<text x="792" y="101" font-size="12" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">input / output</text>
+<rect x="928" y="88" width="16" height="16" rx="3" fill="#ede9fe" stroke="#334155"/>
+<text x="950" y="101" font-size="12" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">memory (flip-flops)</text>
+<rect x="1086" y="88" width="16" height="16" rx="3" fill="#dbeafe" stroke="#334155"/>
+<text x="1108" y="101" font-size="12" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">fixed hardware</text>
+<rect x="1244" y="88" width="16" height="16" rx="3" fill="#fef3c7" stroke="#334155"/>
+<text x="1266" y="101" font-size="12" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">learned logic gates</text>
+<rect x="60" y="120" width="300" height="120" rx="10" fill="#dcfce7" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="144" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Input: SPAD photon arrival</text>
+<text x="74" y="168" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">10-bit time bin per photon</text>
+<text x="74" y="187" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">bins 0-671, 750 ps each</text>
+<text x="74" y="206" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">= 11.2 cm of range per bin</text>
+<text x="74" y="225" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">16-256 photons per pixel</text>
+<rect x="400" y="120" width="300" height="120" rx="10" fill="#ede9fe" stroke="#334155" stroke-width="1.5"/>
+<text x="414" y="144" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Pixel registers</text>
+<text x="414" y="168" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">candidate   10 bits</text>
+<text x="414" y="187" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">            (range guess)</text>
+<text x="414" y="206" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">confidence   4 bits (0-15)</text>
+<text x="414" y="225" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">state      0-4 learned bits</text>
+<text x="770" y="128" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">INPUT</text>
+<text x="770" y="147" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">The single-photon detector reports when each photon arrives, as a bin number; distance is</text>
+<text x="770" y="165" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">bin x 11.2 cm. Training replays real photon streams drawn from SP-TransientBench histograms.</text>
+<text x="770" y="196" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">PIXEL MEMORY</text>
+<text x="770" y="215" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">Only 14-18 flip-flops per pixel, instead of a 672-bin histogram (8,064 bits). No histogram</text>
+<text x="770" y="233" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">is ever stored.</text>
+<rect x="60" y="300" width="640" height="150" rx="10" fill="#dbeafe" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="324" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Layer 0 - Comparator and flag encoder (fixed)</text>
+<text x="74" y="348" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">|arrival - candidate| &lt;= 1,2,4,8,16  -&gt;  near1 ... near16</text>
+<text x="74" y="367" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">arrival &gt; candidate -&gt; gt     arrival &lt; candidate -&gt; lt</text>
+<text x="74" y="386" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">confidence: =0 zero, &gt;=2/4/8 conf2/4/8, =15 full</text>
+<text x="74" y="405" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">+ const0, const1, state0-3</text>
+<text x="74" y="424" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">=&gt; 18 one-bit signals</text>
+<text x="770" y="308" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">FEATURES (not learned)</text>
+<text x="770" y="327" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">Logic gates can only read bits, so numbers become yes/no flags. Distance uses a thermometer</text>
+<text x="770" y="345" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">code: a photon 3 bins away sets near4, near8 and near16 but not near1 or near2. During</text>
+<text x="770" y="363" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">training the flags are smooth sigmoids so gradients can flow. In silicon they are plain</text>
+<text x="770" y="381" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">comparator outputs.</text>
+<line x1="210" y1="240" x2="210" y2="300" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<line x1="550" y1="240" x2="550" y2="300" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<rect x="60" y="500" width="640" height="110" rx="10" fill="#fef3c7" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="524" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Layer 1 - 16 learned logic gates</text>
+<text x="74" y="548" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">each gate reads 2 of the 18 signals</text>
+<text x="74" y="567" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">and applies one 2-input Boolean function</text>
+<text x="770" y="508" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">LEARNED LOGIC</text>
+<text x="770" y="527" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">Each gate learns two things. (1) Routing: which two wires it reads. DARTS keeps a softmax</text>
+<text x="770" y="545" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">weight over every possible wire and sharpens it until one wins; in silicon it is just a</text>
+<text x="770" y="563" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">wire. (2) A 4-entry truth table: the output for inputs 00, 01, 10, 11. It is trained as</text>
+<text x="770" y="581" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">probabilities (a &#x27;light&#x27; gate) and frozen to 0/1, which picks one of 16 functions (AND, OR,</text>
+<text x="770" y="599" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">XOR, NAND...).</text>
+<line x1="380.0" y1="450" x2="380.0" y2="500" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<rect x="60" y="650" width="640" height="110" rx="10" fill="#fef3c7" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="674" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Layer 2 - 16 learned logic gates</text>
+<text x="74" y="698" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">each gate reads 2 of 34 wires:</text>
+<text x="74" y="717" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">the 18 signals + layer 1&#x27;s 16 outputs</text>
+<text x="770" y="658" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">DEPTH</text>
+<text x="770" y="677" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">Later layers can read the original flags directly (a skip connection) or the previous layer,</text>
+<text x="770" y="695" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">so a decision can be 1, 2 or 3 gates deep. All 48 gates are combinational, so one photon</text>
+<text x="770" y="713" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">passes through every layer within a single clock cycle.</text>
+<line x1="380.0" y1="610" x2="380.0" y2="650" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<rect x="60" y="800" width="640" height="125" rx="10" fill="#fef3c7" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="824" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Layer 3 - 16 learned gates -&gt; control signals</text>
+<text x="74" y="848" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">reads 2 of 34 wires (18 signals + layer 2)</text>
+<text x="74" y="867" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">out: next_state0-3, replace, up, down,</text>
+<text x="74" y="886" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">     inc, dec   (other 7 gates unused)</text>
+<text x="770" y="808" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">OUTPUT HEAD</text>
+<text x="770" y="827" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">The last layer&#x27;s gates have fixed meanings: state bits loop back to memory, and five action</text>
+<text x="770" y="845" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">bits tell the datapath what to do with this photon. Yosys deletes unused and constant gates,</text>
+<text x="770" y="863" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">so they cost no area.</text>
+<line x1="380.0" y1="760" x2="380.0" y2="800" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<rect x="60" y="980" width="640" height="130" rx="10" fill="#dbeafe" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="1004" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Layer 4 - Update datapath (fixed)</text>
+<text x="74" y="1028" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">replace  -&gt; candidate = arrival</text>
+<text x="74" y="1047" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">up / down -&gt; candidate +/- 1 bin (cancel if both)</text>
+<text x="74" y="1066" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">inc / dec -&gt; confidence +/- 1, held within 0-15</text>
+<text x="74" y="1085" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">state &lt;- next_state   on the clock edge</text>
+<text x="770" y="988" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">UPDATE</text>
+<text x="770" y="1007" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">A fixed adder and multiplexer apply the actions on the clock edge. The learned network never</text>
+<text x="770" y="1025" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">does arithmetic, it only decides. That is why the core is tiny: the range estimator becomes</text>
+<text x="770" y="1043" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">a small state machine that runs once per photon.</text>
+<line x1="380.0" y1="925" x2="380.0" y2="980" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<path d="M700,1045 H728 V180 H706" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#a)"/>
+<text x="736" y="640" font-size="12" fill="#7c3aed" transform="rotate(90 736 640)" text-anchor="middle">new candidate, confidence, state -> next photon</text>
+<path d="M60,180 H30 V1010 H54" fill="none" stroke="#16a34a" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)"/>
+<text x="22" y="640" font-size="12" fill="#16a34a" transform="rotate(-90 22 640)" text-anchor="middle">arrival (loaded on replace)</text>
+<rect x="60" y="1160" width="640" height="110" rx="10" fill="#dcfce7" stroke="#334155" stroke-width="1.5"/>
+<text x="74" y="1184" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Output - range readout</text>
+<text x="74" y="1208" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">after the frame: bin = candidate - offset</text>
+<text x="74" y="1227" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">range = (bin - 17) x 0.1124 m - pixel offset</text>
+<text x="74" y="1246" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">then reset the registers for the next frame</text>
+<text x="770" y="1168" font-size="13" font-weight="bold" text-anchor="start" fill="#334155" style="white-space:pre">OUTPUT</text>
+<text x="770" y="1187" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">The final candidate is the pixel&#x27;s range estimate. One constant offset is fitted on the</text>
+<text x="770" y="1205" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">training captures (-2.7 bins for this circuit, about 0.31 m early). Result: ASAP7 area 20.2,</text>
+<text x="770" y="1223" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">228 cells, 0 netlist mismatches. On validation with random photon counts (16-256) and extra</text>
+<text x="770" y="1241" font-size="13" font-weight="normal" text-anchor="start" fill="#374151" style="white-space:pre">ambient (0-0.6): 0.568 m mean, 0.157 m median, 74% within 3 bins.</text>
+<line x1="380.0" y1="1110" x2="380.0" y2="1160" stroke="#334155" stroke-width="2" marker-end="url(#a)"/>
+<rect x="60" y="1310" width="640" height="225" rx="10" fill="#f8fafc" stroke="#64748b" stroke-dasharray="6 4" stroke-width="1.5"/>
+<text x="74" y="1336" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">Training only (none of this is in the chip)</text>
+<text x="74" y="1364" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- 16-256 photons and 0-0.6 extra ambient, drawn per sample</text>
+<text x="74" y="1390" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- Bilevel DARTS: tables on captures 1-4 + 3 scenes, routing on 5 + 1 scene</text>
+<text x="74" y="1416" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- Physics police: CFAR + Poisson likelihood, label-free</text>
+<text x="74" y="1442" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- Evolutionary search: 32 mutants x 400 generations, bit-packed</text>
+<text x="74" y="1468" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- Area cost from ASAP7 Liberty cells added to the loss</text>
+<text x="74" y="1494" font-size="13" font-weight="normal" text-anchor="start" fill="#334155" style="white-space:pre">- Held out: captures 7-10 and the outdoor parking scene</text>
+<rect x="760" y="1310" width="620" height="225" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+<text x="774" y="1336" font-size="15" font-weight="bold" text-anchor="start" fill="#111" style="white-space:pre">What it learned (3 of 48 gates do real work)</text>
+<text x="774" y="1364" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">replace = zero           start over when confidence is 0</text>
+<text x="774" y="1388" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">inc     = conf2|near16   +1 unless confidence &lt;2 and photon far</text>
+<text x="774" y="1412" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">dec     = !near16        -1 for a photon more than 16 bins away</text>
+<text x="774" y="1436" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">down    = lt &amp; near8     1 bin earlier for a photon &lt;=8 bins earlier</text>
+<text x="774" y="1460" font-size="13" font-weight="normal" text-anchor="start" fill="#111" style="white-space:pre" font-family="Menlo,Consolas,monospace">up      = 0              never steps later; state bits unused</text>
+<text x="774" y="1492" font-size="13" font-weight="bold" text-anchor="start" fill="#92400e" style="white-space:pre">=&gt; far photons only reset a weak lock; strong locks hold.</text>
+<text x="774" y="1516" font-size="13" font-weight="bold" text-anchor="start" fill="#92400e" style="white-space:pre">   Walks to the cluster&#x27;s early edge (leading-edge tracker)</text>
+</svg>

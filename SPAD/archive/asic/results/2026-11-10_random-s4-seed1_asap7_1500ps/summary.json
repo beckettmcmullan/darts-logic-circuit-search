@@ -1,0 +1,20 @@
+{
+  "circuit": "runs/2026-11-08_kaggle-t4_physics-police_random-conditions/random-s4-seed1/circuit.json",
+  "platform": "asap7 (ORFS default corner, fast-fast libraries)",
+  "clock_period_ps": 1500,
+  "setup_worst_slack_ps": 552.548,
+  "hold_worst_slack_ps": 42.7225,
+  "min_period_ps": 738.27,
+  "fmax_mhz": 1354.51,
+  "clock_skew_ps": 2.57687,
+  "die_area_um2": 104.02,
+  "core_area_um2": 81.3127,
+  "stdcell_area_um2": 41.3489,
+  "stdcells": 423,
+  "tap_cells": 66,
+  "fill_cells": 460,
+  "utilization": 0.508517,
+  "wirelength_um": 842,
+  "drc_errors": 0,
+  "power_total_w_vectorless": 5.93624e-05
+}

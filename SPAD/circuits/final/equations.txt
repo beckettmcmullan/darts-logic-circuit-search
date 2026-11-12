@@ -1,0 +1,13 @@
+# random-s4-seed0: learned controller
+# 26 gates do real work out of 48
+# impossible flag combinations are treated as don't-cares
+
+next_state0 = ~conf4 | (gt & state0) | (~near4 & ~state0)
+next_state1 = state2 & ~near16
+next_state2 = zero | ~near16
+next_state3 = ~lt
+do_replace = ~conf2
+do_up = state3 | ~state0 | (near16 & ~near4)
+do_down = near4 | ~near16
+do_inc = ~conf2 | (lt & ~state1) | (state0 & ~state1) | (~conf8 & ~state1) | (conf8 & state1 & ~lt & ~state0)
+do_dec = state1 & ~near16

@@ -1,0 +1,18 @@
+{
+  "circuit": "runs/2026-11-10_kaggle-t4_batch3_fused-larger-search/random-s4-seed0/circuit.json",
+  "platform": "asap7 (ORFS default, fast-fast libraries)",
+  "clock_period_ps": 1500,
+  "setup_worst_slack_ps": 608.833,
+  "hold_worst_slack_ps": 42.0903,
+  "min_period_ps": 682.25,
+  "fmax_mhz": 1465.73,
+  "clock_skew_ps": 2.56233,
+  "die_area_um2": 110.481,
+  "core_area_um2": 89.3025,
+  "stdcell_area_um2": 44.0753,
+  "stdcells": 451,
+  "utilization": 0.493551,
+  "wirelength_um": 916,
+  "drc_errors": 0,
+  "power_total_w_vectorless": 7.08218e-05
+}

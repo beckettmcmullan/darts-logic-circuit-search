@@ -1,0 +1,11 @@
+# name then train_stream.py arguments
+# Every job trains under randomized photon counts (16-256) and extra ambient (0-0.6).
+# Police jobs use the label-free physics police; nopolice jobs are the ablation.
+rule-s4-seed0 --init rule --state-bits 4 --seed 0
+rule-s4-seed1 --init rule --state-bits 4 --seed 1
+rule-s0-seed0 --init rule --state-bits 0 --seed 0
+random-s4-seed0 --init random --state-bits 4 --seed 0
+random-s4-seed1 --init random --state-bits 4 --seed 1
+random-s2-seed0 --init random --state-bits 2 --seed 0
+rule-s4-seed0-nopolice --init rule --state-bits 4 --seed 0 --police-weight 0 --police-search-weight 0
+random-s4-seed0-nopolice --init random --state-bits 4 --seed 0 --police-weight 0 --police-search-weight 0

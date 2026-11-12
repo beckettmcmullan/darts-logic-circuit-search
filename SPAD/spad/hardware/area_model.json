@@ -1,0 +1,77 @@
+{
+  "features": [
+    "live_gates",
+    "state_flops",
+    "flag_near1",
+    "flag_near2",
+    "flag_near4",
+    "flag_near8",
+    "flag_near16",
+    "flag_gt",
+    "flag_lt",
+    "flag_zero",
+    "flag_conf2",
+    "flag_conf4",
+    "flag_conf8",
+    "flag_full",
+    "any_distance_flag",
+    "confidence_counter",
+    "action_replace",
+    "action_up",
+    "action_down",
+    "counter_inc",
+    "counter_dec",
+    "replace_always",
+    "intercept"
+  ],
+  "coefficients": [
+    0.18660628266829848,
+    1.0032806317445706,
+    -0.6782155304985114,
+    0.10041751509546275,
+    -1.5757326346350677,
+    0.6671674442396524,
+    1.537244009857066,
+    -0.35072890724079836,
+    -0.15697598407439067,
+    0.4400984287828134,
+    -0.42946057436158314,
+    -0.8256073976745819,
+    -0.5819550080873618,
+    -0.9012687250822832,
+    6.082542345966409,
+    -0.5507747095053108,
+    -0.14790118345167227,
+    -0.5930832380023445,
+    1.3738317762597354,
+    -0.01868955465352165,
+    0.5728785346404954,
+    -3.3612753414412477,
+    12.952142326273917
+  ],
+  "fit": {
+    "circuits": 368,
+    "held_out": 73,
+    "held_out_mean_abs_error_um2": 2.5281646688424484,
+    "held_out_max_abs_error_um2": 17.234161862158302,
+    "area_range_um2": [
+      5.584139823913574,
+      27.599939346313477
+    ]
+  },
+  "config": {
+    "state_bits": 4,
+    "width": 16,
+    "layers": 3,
+    "conf_bits": 4,
+    "cand_bits": 10,
+    "windows": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ]
+  },
+  "note": "Yosys + ABC (-D 1000) with ASAP7 RVT TT Liberty; area in \u00b5m\u00b2"
+}

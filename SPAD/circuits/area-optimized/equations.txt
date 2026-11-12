@@ -1,0 +1,13 @@
+# area-optimized (final-design-tol5): learned controller
+# 24 gates do real work out of 48
+# impossible flag combinations are treated as don't-cares
+
+next_state0 = (conf4 & near4) | (conf4 & state0) | (~conf4 & ~near4 & ~state0)
+next_state1 = state2 & ~near16
+next_state2 = zero | ~near16
+next_state3 = ~lt
+do_replace = ~conf2
+do_up = state3 | (near16 & ~near4)
+do_down = near4 | ~near16
+do_inc = ~conf2 | ~state1
+do_dec = state1 & ~near16
