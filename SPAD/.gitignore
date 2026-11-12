@@ -1,0 +1,13 @@
+data/
+runs/
+__pycache__/
+kaggle/dist/
+kaggle/batches/*/*.zip
+asic/flow/
+archive/**/*.zip
+archive/**/*.mp4
+docs/video/spad_explainer_raw.mp4
+
+# Lock files from the constraints-lab CPU slot wrapper, compiled helpers
+constraints_lab/.slots/
+*.dylib
