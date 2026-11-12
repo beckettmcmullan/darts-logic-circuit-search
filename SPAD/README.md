@@ -1,9 +1,8 @@
 # Measuring distance one photon at a time
 
-Can a computer design a circuit that measures distance from single photons
-without storing a histogram? This project searches for that circuit using real
-single-photon sensor data, then takes the best design all the way to a chip
-layout.
+Can a neural network design a circuit that measures distance from single photons
+without storing a histogram? This project searches for circuit using real
+single-photon sensor data to find task-driven insights from it.
 
 The chosen circuit keeps **18 bits of memory per pixel** instead of a histogram
 of about **8,000 bits**. It measures distance to within **34 cm on 76% of
@@ -171,26 +170,6 @@ The slowest signal path sets the fastest clock: a signal needs 682 ps to travel
 from one memory bit, through the comparator and controller, to the next memory
 bit. The layout file, routed circuit and full timing report are in
 [`asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md).
-
-## Which extra goals are worth adding
-
-The circuit runs far faster than photons arrive, so speed and power are not the
-limits. Area is. After switching the search to area, six candidate extra goals
-were tested side by side:
-
-| Goal | Verdict | How |
-|---|---|---|
-| Steady answer across photon counts and background | Adopt | Final check: the offset may move at most 1 step |
-| Fewer badly wrong pixels | Adopt | Final check: the share of pixels off by more than 1 m may rise by at most 0.2 percentage points |
-| A "no target" output | Adopt | Report "valid" when the confidence counter is 8 or more: 97.6% of targets detected, 0.1% false alarms, almost no extra area |
-| Tolerance to sensor effects (pile-up, timing jitter, bit errors) | Adopt as checks | Training on distorted photons made the circuit worse, so only check at the end |
-| Settling quickly | Report only | Limiting it during the search cost area and bought nothing |
-| Fewer memory bits | Do not adopt | Two of the extra memory bits are essential; removing either makes the error 25 times worse |
-
-The biggest lesson was not about any one goal. The design recordings and the
-validation recordings disagree more than expected. A change that improved error
-on the design recordings sometimes made validation error 38% worse. Only the
-final check on validation keeps the search honest.
 
 ## Limitations
 
