@@ -57,5 +57,5 @@ gates inside a dashed cell outline; the other 70 of the 451 cells are tap cells,
 no logic; redraw with `python asic/draw_gates.py <this folder>` from `SPAD/`),
 `training_accuracy.png` (validation mean error during the gradient phase and the exact search,
 from `runs/2026-11-10_kaggle-t4_batch3_fused-larger-search/random-s4-seed0.log`), `explainer/`
-(frames from the project's explainer video, used in the SPAD README), and the inputs `photon_core.v`,
+(figures drawn from this circuit's data, used in the SPAD README), and the inputs `photon_core.v`,
 `constraint.sdc`, `config.mk`.

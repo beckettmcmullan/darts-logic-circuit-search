@@ -9,9 +9,6 @@ of about **8,000 bits**. It measures distance to within **34 cm on 76% of
 pixels**, and its layout fits in a **10.5 µm square** in a predictive 7 nm
 process.
 
-This overview follows the project's explainer video. The pictures are frames
-from that video, drawn from the chosen circuit's real data.
-
 ## 1. The problem
 
 ![One pixel's photon histogram](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/explainer/01_histogram.webp)
