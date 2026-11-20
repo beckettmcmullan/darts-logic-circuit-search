@@ -1,3 +1,16 @@
+"""Choosing between operations on more than one data point.
+
+Same softmax mixture as firstDARTS.py, with two changes:
+  - the candidates are identity and a small neural network (two hidden tanh
+    layers), and the data is four points the identity cannot fit;
+  - Adam replaces plain SGD.
+
+The weights inside the operations and the architecture scores are trained
+together by one optimizer. At the end the script discretizes the choice: it
+takes the operation with the highest probability (argmax) and prints its index.
+
+Run: python3 basics/DARTS2.py
+"""
 import torch
 from torch import nn
 

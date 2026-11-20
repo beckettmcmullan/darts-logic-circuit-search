@@ -1,4 +1,17 @@
-"""Software and hand-rule reference estimators, fitted on design captures only."""
+"""Software and hand-rule reference estimators, fitted on design captures only.
+
+These are the comparison points for the learned circuit: histogram argmax ("peak"),
+a width-8 box filter then argmax ("box8"), a peak with a bias table keyed on the peak
+height ("lut"), a small 1-D CNN over the histogram, and the hand-written streaming
+rules from spad.core.stream_model.rule_circuit. Each is scored on a full histogram and
+on photon budgets of 16-256 photons drawn with spad.dataset.photons. Offsets and the
+CNN are fitted on the train split only; results on the architecture and validation
+splits are written to design_metrics.json. Distances are reported in metres
+(1 bin = 750 ps = about 0.1124 m).
+
+Usage (from SPAD/):  python -m spad.training.baselines [--data DIR] [--out DIR]
+                         [--cnn-seconds S] [--cnn-budgets N ...] [--threads N]
+"""
 import argparse
 import json
 from pathlib import Path
@@ -17,6 +30,11 @@ BUDGETS = (16, 32, 64, 128, 256)
 
 
 def metrics(prediction, target):
+    """Error summary of predicted vs target bins (same shape, in bins).
+
+    Returns mae_m, median_m, rmse_m (metres) and recall_{1,3,5}_bins (fraction of
+    rays within that many bins). Also used by train_stream.
+    """
     error = (prediction.float() - target).abs()
     return {"mae_m": float(error.mean()*BIN_METERS), "median_m": float(error.median()*BIN_METERS),
             "rmse_m": float(error.square().mean().sqrt()*BIN_METERS),
@@ -24,19 +42,23 @@ def metrics(prediction, target):
 
 
 def scored(prediction, target, clean):
+    """metrics() on all rays and on the clean (edge-free) subset; clean is a bool mask."""
     return {"all": metrics(prediction, target), "clean": metrics(prediction[clean], target[clean])}
 
 
 def box_peak(histograms, width):
+    """Argmax bin of the histogram after a box filter of `width` bins; float [rays]."""
     kernel = torch.ones(1, 1, width)
     return nn.functional.conv1d(histograms.float()[:, None], kernel, padding=width//2)[:, 0].argmax(-1).float()
 
 
 def peak(histograms):
+    """Argmax bin of each histogram; float [rays]."""
     return histograms.argmax(-1).float()
 
 
 def lut_index(histograms):
+    """Bucket of each ray's peak height (log2 of the max count, half-octave steps); indexes the bias table."""
     return torch.bucketize(torch.log2(histograms.amax(-1).float() + 1), torch.arange(1., 12.01, .5))
 
 
@@ -59,6 +81,12 @@ class RangeCNN(nn.Module):
 
 
 def train_cnn(histograms, targets, budget, seconds, seed=0):
+    """Train a RangeCNN for `seconds` of wall time.
+
+    budget: photons per ray to resample each batch with (0 = use the full histogram).
+    The target is a soft Gaussian (variance 4 bins^2) around the label bin, trained
+    with cross-entropy over the 672 bins.
+    """
     torch.manual_seed(seed)
     generator = torch.Generator().manual_seed(seed)
     model = RangeCNN()
@@ -108,6 +136,7 @@ def evaluate_methods(fitted, cnns, histograms, targets, clean, seed=1):
 
 
 def main():
+    """CLI entry point: fit offsets and bias table, train CNNs, score every method."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT/"data")
     parser.add_argument("--out", type=Path, default=ROOT/"runs/2026-11-05_reference-baselines")

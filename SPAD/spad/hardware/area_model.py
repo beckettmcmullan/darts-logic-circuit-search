@@ -30,6 +30,7 @@ CONFIDENCE_FLAGS = ("zero", "conf2", "conf4", "conf8", "full")
 
 
 def feature_names(config):
+    """Names of the columns usage() returns, in order; must match the saved coefficients."""
     names = input_names(config)
     flags = [n for n in names if not n.startswith(("state", "const"))]
     return (["live_gates", "state_flops"] + [f"flag_{n}" for n in flags] + ["any_distance_flag", "confidence_counter"]
@@ -100,7 +101,11 @@ def usage(config, inputs, codes, probe):
 
 
 def probe_photons(rays=64, steps=48, seed=0, device=None):
-    """Varied photon streams (a return near a random range plus ambient) for activity checks."""
+    """Varied photon streams for activity checks: [rays, steps] arrival bins.
+
+    Each ray has a return at a random bin (+/-12 bins of jitter) and 30% uniformly
+    random ambient photons. Bins are 750 ps.
+    """
     g = torch.Generator().manual_seed(seed)
     centre = torch.randint(0, 672, (rays, 1), generator=g)
     photons = (centre + torch.randint(-12, 13, (rays, steps), generator=g)).clamp(0, 671)
@@ -157,7 +162,13 @@ def activity(config, inputs, codes, photons):
 
 
 class AreaModel:
-    """Fitted coefficients; estimate() returns synthesized-area estimates in ASAP7 µm²."""
+    """Fitted coefficients; estimate() returns synthesized-area estimates in ASAP7 µm².
+
+    The estimate is a linear model: area = usage(...) @ coefficients, where usage()
+    counts live gates, flops, and which datapath flags and actions the circuit uses.
+    Coefficients come from area_model.json (written by this module's main()).
+    These are predictions of a predictive library's synthesis result, not layout area.
+    """
 
     def __init__(self, path=MODEL_PATH, device=None):
         saved = json.loads(Path(path).read_text())
@@ -170,22 +181,28 @@ class AreaModel:
         return self
 
     def features(self, config, inputs, codes):
+        """Feature matrix [members, features] for a population (see usage)."""
         found = usage(config, inputs, codes, self.probe)
         if found.shape[1] != len(self.names):
             raise ValueError("Area model was fitted for a different datapath configuration")
         return found
 
     def estimate(self, config, inputs, codes):
+        """Estimated area in um^2, shape [members]. inputs [M, L, W, 2], codes [M, L, W] as in pack_circuit."""
         return self.features(config, inputs, codes) @ self.coefficients
 
     def circuit_area(self, circuit):
+        """Estimated area (float, um^2) of one circuit dictionary."""
         config = StreamConfig(**circuit["config"])
         inputs, codes = pack_circuit(circuit, self.coefficients.device)
         return float(self.estimate(config, inputs[None], codes[None])[0])
 
 
 def degenerate(circuit, rays=512, seed=0):
-    """True if the circuit's output is the same for every ray of varied photon streams."""
+    """True if the circuit's output is the same for every ray of varied photon streams.
+
+    Such a circuit does not measure anything. (Note the name: True means "degenerate".)
+    """
     from spad.core.stream_model import simulate_stream
     g = torch.Generator().manual_seed(seed)
     centre = torch.randint(0, 672, (rays, 1), generator=g)
@@ -217,6 +234,11 @@ def _variants(templates, count, seed):
 
 
 def main():
+    """Fit the area model: synthesize varied circuits, regress area on usage(), write area_model.json.
+
+    Ridge regression (strength 1e-3) on a random 80% of circuits is scored on the other 20%
+    (reported as held-out error); the saved coefficients are refit on all circuits.
+    """
     from spad.hardware.synth import synthesize
     from spad.hardware.verilog import stream_verilog
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

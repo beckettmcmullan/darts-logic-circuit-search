@@ -1,4 +1,16 @@
-"""ASAP7 Liberty-derived search proxies, not synthesis or signoff timing."""
+"""ASAP7 Liberty-derived search proxies, not synthesis or signoff timing.
+
+Reads the ASAP7 Liberty (.lib) cell libraries downloaded by spad.dataset.download and
+builds data/asap7/costs.json: for each of the 16 possible two-input truth tables, the
+area and delay of the cheapest ASAP7 cell combination that implements it (for example
+a NAND cell for code 7, or an inverter plus an AND cell for "a and not b"). Pass-throughs
+and constants cost nothing. The gradient phase (train_stream.expected_area) and core_cost
+use this table as a differentiable area penalty. It counts the learned gates only; the
+whole-core area, including the fixed datapath, is estimated by spad.hardware.area_model.
+ASAP7 is a predictive library, and these are library numbers, not layout results.
+
+Usage (from SPAD/):  python -m spad.hardware.costs [--root DIR]
+"""
 import argparse
 import hashlib
 import json
@@ -32,12 +44,17 @@ def groups(text, kind):
 
 
 def attribute(text, name):
+    """Value of the first `name : value;` attribute in a Liberty text block, or None."""
     # Some released ASAP7 attributes omit a semicolon before the newline.
     match = re.search(r"\b" + name + r"\s*:\s*([^;\n\r]+)", text)
     return match.group(1).strip().strip('"') if match else None
 
 
 def table_max(text, kinds):
+    """Largest number in the `values(...)` tables of the named timing groups, or None.
+
+    Taking the maximum over all slews and loads is a conservative single number per arc.
+    """
     values = []
     for kind in kinds:
         for _, body in groups(text, kind):
@@ -47,6 +64,7 @@ def table_max(text, kinds):
 
 
 def extract_cells(text, source):
+    """Parse one Liberty file into [{name, area, delay_ps, setup_ps, ...}], converting delays to ps."""
     time = attribute(text, "time_unit")
     units = re.fullmatch(r"([\d.]+)\s*(ps|ns|us|s)", time or "")
     if not units:
@@ -73,6 +91,12 @@ def extract_cells(text, source):
 
 
 def build_costs(root):
+    """Build and write root/asap7/costs.json, and return it.
+
+    Unpacks any *.lib.7z archives (using `tar`, which must read 7z, as macOS bsdtar does),
+    picks the smallest-area cell for each primitive, and prices each truth-table code
+    as a combination of primitives. Raises if a primitive cell is missing.
+    """
     folder = root / "asap7"
     for archive in folder.glob("*.lib.7z"):
         # macOS bsdtar supports 7z. Read only the named library from each archive.
@@ -108,7 +132,8 @@ def build_costs(root):
         return {"area": sum(selected[k]["area"] for k in kinds),
                 "delay_ps": sum(selected[k]["delay_ps"] for k in kinds),
                 "cells": [selected[k]["name"] for k in kinds]}
-    # Codes are sum(table[i] << i), table ordered 00,01,10,11.
+    # Codes are sum(table[i] << i), table ordered 00,01,10,11. Codes 0 (constant 0), 10
+    # (pass b), 12 (pass a) and 15 (constant 1) are absent below, so they keep zero cost.
     table = [zero.copy() for _ in range(16)]
     for code, kinds in {1:("NOR",), 2:("INV","AND"), 3:("INV",),
                         4:("INV","AND"), 5:("INV",), 6:("XOR",), 7:("NAND",),
@@ -129,8 +154,12 @@ def build_costs(root):
 
 
 def core_cost(model, costs, temperature=1., hard=False):
-    """Expected table cost plus routing-dependent combinational path proxy.
+    """Expected area and critical-path delay of a model, from the cost table.
 
+    For each gate, the probability of each of the 16 truth tables is the product of the
+    four per-entry Bernoulli probabilities. Area is the probability-weighted cost plus
+    one flip-flop per state bit; delay is the longest expected path through the layers
+    (routing-weighted input arrival, plus the gate's expected delay, plus flip-flop setup).
     Truth-table probabilities derive from four independent Bernoulli outputs;
     they are only used to compute cost, not a 16-way gate parametrization.
     """

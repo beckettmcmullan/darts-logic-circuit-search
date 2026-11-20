@@ -1,7 +1,22 @@
-"""Recurrent light logic gates with first-order DARTS input routing.
+"""Learned logic-gate layers: the shared building block, plus an older histogram model.
 
-Inference uses Boolean gates, registers, and an integer argmax over bin scores.
-Softmax over time is exclusively a training loss, never an inference operation.
+Two things live here.
+
+1. GateLayer and light_gate. A layer is `width` two-input gates. Each gate has
+   two routing vectors (which source signal feeds input a and input b) and a
+   4-entry truth table. In training the routing is a softmax over sources and the
+   truth table is four sigmoid probabilities, so the gate is a differentiable
+   multilinear function (a DARTS-style relaxation). After hardening, each input
+   is one source (argmax) and each table entry is 0 or 1. spad.core.stream_model
+   builds the photon-stream core from this class.
+
+2. RecurrentLogic, Config and simulate_circuit. An earlier design that scans a
+   stored 672-bin histogram one bin at a time and outputs a per-bin score, with
+   the range being the earliest bin of maximum score. Nothing in the current
+   stream pipeline imports it; it is kept as a reference for the histogram-based
+   approach that the stream core replaces.
+
+Time bins are 750 ps wide (about 0.1124 m of range each).
 """
 from dataclasses import asdict, dataclass
 
@@ -11,6 +26,17 @@ from torch import nn
 
 @dataclass
 class Config:
+    """Sizes for RecurrentLogic (histogram scanner).
+
+    count_bits: bits of the per-bin photon count fed in (counts clamp at 2**count_bits - 1).
+    position_bits: bits of the bin index fed in; must cover `bins`.
+    state_bits: recurrent registers carried from one bin to the next.
+    score_bits: width of the unsigned per-bin score the last layer emits.
+    width: gates per layer; must be at least state_bits + score_bits.
+    layers: number of gate layers.
+    bins: histogram length (672 time bins of 750 ps).
+    truncation: detach the state every `truncation` bins (0 = full backprop through time).
+    """
     count_bits: int = 12
     position_bits: int = 10
     state_bits: int = 16
@@ -32,12 +58,28 @@ class Config:
 
 
 def light_gate(a, b, table):
-    """Multilinear interpolation; truth-table order is 00, 01, 10, 11."""
+    """Evaluate a two-input gate as a multilinear function of a and b.
+
+    a, b: tensors of values in [0, 1] (exactly 0 or 1 once hardened), any shape.
+    table: [..., 4] output values for (a, b) = 00, 01, 10, 11, in that order.
+    Returns a tensor broadcast over a, b and table's leading dimensions. For
+    binary a, b and table it equals the plain Boolean gate.
+    """
     return ((1-a) * (1-b) * table[..., 0] + (1-a) * b * table[..., 1]
             + a * (1-b) * table[..., 2] + a * b * table[..., 3])
 
 
 class GateLayer(nn.Module):
+    """One layer of `width` learnable two-input gates.
+
+    Parameters:
+      routes [width, 2, sources]: logits choosing which source signal drives
+        input a (index 0) and input b (index 1) of each gate. These are the
+        DARTS "architecture" parameters.
+      table_logits [width, 4]: logits for the truth-table entries 00, 01, 10, 11.
+        These are the "weight" parameters.
+    `sources` is the number of signals the layer can read.
+    """
     def __init__(self, sources, width):
         super().__init__()
         # Residual A initialization breaks gate/negation symmetry.
@@ -51,6 +93,17 @@ class GateLayer(nn.Module):
         self.routes = nn.Parameter(routes)
 
     def prepared(self, temperature=1., hard=False, ste=False):
+        """Return (routing [width, 2, sources], table [width, 4]) for the chosen mode.
+
+        Soft (default): routing is softmax(routes / temperature), table is the
+        sigmoid of its logits. A lower temperature makes routing closer to one-hot.
+        hard: routing is one-hot at the argmax and table is thresholded at 0.5,
+        so the layer is the exact discrete circuit (no gradient).
+        ste (straight-through estimator): the forward value is the hard one, but
+        the gradient is taken as if the soft value had been used. This is the
+        `x + (hard - x).detach()` pattern below: it equals `hard` in value and
+        `x` in gradient.
+        """
         probabilities = (self.routes / temperature).softmax(-1)
         table = self.table_logits.sigmoid()
         if hard or ste:
@@ -66,6 +119,14 @@ class GateLayer(nn.Module):
 
 
 class RecurrentLogic(nn.Module):
+    """Histogram scanner: gate layers run once per bin with recurrent state.
+
+    Input is a [rays, bins] integer histogram. For each bin the base inputs are
+    the count bits (LSB first), the bin index bits, constants 0 and 1, and the
+    previous state. The last layer's first `state_bits` outputs are the next
+    state and the next `score_bits` outputs are an unsigned score for that bin.
+    forward() returns scores [rays, bins]; the range is the earliest argmax.
+    """
     def __init__(self, config=None):
         super().__init__()
         self.config = config or Config()
@@ -92,9 +153,11 @@ class RecurrentLogic(nn.Module):
         self.register_buffer("score_weights", 2. ** torch.arange(c.score_bits))
 
     def architecture_parameters(self):
+        """Routing logits, optimized on the architecture split."""
         return [layer.routes for layer in self.layers]
 
     def weight_parameters(self):
+        """Truth-table logits, optimized on the training split."""
         return [layer.table_logits for layer in self.layers]
 
     def forward(self, histograms, temperature=1., hard=False, ste=False):
@@ -129,6 +192,7 @@ class RecurrentLogic(nn.Module):
 
     @torch.no_grad()
     def circuit(self):
+        """Export the hardened network as a JSON-serializable dictionary."""
         layers = []
         for layer in self.layers:
             routes, table = layer.prepared(hard=True)

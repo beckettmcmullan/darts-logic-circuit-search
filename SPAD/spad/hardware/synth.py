@@ -1,4 +1,16 @@
-"""Synthesize cores with Yosys and ASAP7 Liberty, and verify them bit for bit."""
+"""Synthesize cores with Yosys and ASAP7 Liberty, and verify them bit for bit.
+
+Takes trained circuit.json files (and the hand-written rule circuit), generates
+Verilog with spad.hardware.verilog, checks the elaborated gate netlist against the
+Python integer simulator (spad.core.stream_model.simulate_stream), then maps it to
+ASAP7 cells and reports area. ASAP7 is a predictive library (not a manufacturable
+process), so areas are comparative estimates. Area is whatever unit the Liberty
+files use (area_model.py labels it um^2).
+
+Needs the yowasp-yosys package and the ASAP7 .lib files from spad.dataset.download.
+
+Usage (from SPAD/):  python -m spad.hardware.synth runs/<run>/circuit.json [...] [--data DIR] [--out FILE]
+"""
 import argparse
 import json
 from pathlib import Path
@@ -20,6 +32,7 @@ LIBRARIES = ("SIMPLE", "INVBUF", "SEQ")
 
 
 def yosys(script, folder):
+    """Run a Yosys script in `folder` (written to run.ys) and return the log text; raise on failure."""
     (folder/"run.ys").write_text(script)
     done = subprocess.run([YOSYS, "-q", "-l", "yosys.log", "run.ys"], cwd=folder, capture_output=True, text=True)
     if done.returncode:
@@ -28,7 +41,13 @@ def yosys(script, folder):
 
 
 def verify(verilog, module, circuit, rays=4000, seed=3):
-    """Compare the elaborated gate netlist against the Python integer simulator."""
+    """Compare the elaborated gate netlist against the Python integer simulator.
+
+    Builds random photon streams (a return near a random bin with +/-12 bins of
+    jitter, 30% ambient photons, 5% empty slots), runs them through the netlist
+    and through simulate_stream, and returns the number of rays whose final
+    candidate differs (0 means bit-exact).
+    """
     with tempfile.TemporaryDirectory() as name:
         folder = Path(name)
         (folder/"core.v").write_text(verilog)
@@ -47,6 +66,13 @@ def verify(verilog, module, circuit, rays=4000, seed=3):
 
 
 def synthesize(verilog, module, data, period_ps=1000):
+    """Map Verilog to ASAP7 cells with Yosys + ABC and return its area.
+
+    data: folder holding asap7/*.lib (from spad.dataset.download). period_ps is the
+    ABC delay target (1000 ps). Returns {"area", "cells", "flops", "report"}; area
+    is None if no area line was found. The libraries in LIBRARIES (SIMPLE, INVBUF,
+    SEQ) are the combinational, inverter/buffer and flip-flop cells.
+    """
     libraries = {kind: next((data/"asap7").glob(f"*{kind}*.lib")) for kind in LIBRARIES}
     with tempfile.TemporaryDirectory() as name:
         folder = Path(name)
@@ -68,6 +94,7 @@ def synthesize(verilog, module, data, period_ps=1000):
 
 
 def main():
+    """CLI entry point; writes per-design results to --out (default runs/synthesis.json)."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("circuits", type=Path, nargs="*", help="circuit.json files")
     parser.add_argument("--data", type=Path, default=ROOT/"data")

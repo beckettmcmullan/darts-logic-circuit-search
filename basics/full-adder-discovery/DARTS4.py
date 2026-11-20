@@ -4,6 +4,24 @@ Each gate node learns alpha (what gate it is) and beta_a / beta_b (what inputs i
 Every input is constructed by an acyclic graph of nodes, where each node is guaranteed
 to use a previous signal that existed before it.
 Gamma picks which nodes drive Sum and Cout.
+
+How it works
+  - Each gate node holds scores (logits) for every candidate gate. A softmax turns
+    them into weights, and the node output is the weighted sum of every gate
+    evaluated on the node's two inputs. Gates are written as arithmetic on 0/1
+    values (for example AND = a*b, XOR = a + b - 2ab), so they are exact on 0/1
+    and smooth in between.
+  - The two inputs of a node are softmax-weighted sums of all earlier signals
+    (A, B, Cin and earlier nodes). A mask forbids later nodes, so there are no loops.
+  - Sum and Cout are each a softmax-weighted sum over the gate nodes (gamma).
+  - All scores are architecture parameters. There are no separate weights.
+    Adam minimises binary cross-entropy against the 8-row full adder truth table.
+  - Softmax temperature is annealed from 1.0 to 0.3, and Gumbel noise is added
+    to the scores, to push choices toward one option and to explore.
+  - At the end each choice is replaced by its argmax (a discrete circuit) and
+    checked on all 8 input rows. Many circuits train in one batch.
+
+Run (from the repository root): python3 basics/full-adder-discovery/DARTS4.py
 """
 
 import torch

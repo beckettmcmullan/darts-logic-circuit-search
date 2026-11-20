@@ -1,5 +1,31 @@
 """Search a streaming controller: bilevel DARTS, then batched hard search.
 
+Main training entry point. Two phases, run in order:
+
+1. Gradient phase (--steps, default 1500). Each step does two updates on StreamCore:
+   routing logits on a batch from the architecture split, then truth-table logits on a
+   batch from the train split (a first-order bilevel, DARTS-style, update). The softmax
+   temperature falls geometrically from --start-temperature to --end-temperature over
+   the run. From --harden-after (fraction of steps, default 0.3) the forward pass uses
+   the straight-through estimator: the value is the hard Boolean circuit, the gradient
+   is the soft one. Every --eval-every steps the hardened circuit is scored on the
+   validation split; if its error exceeds --rollback-factor (1.25) times the best so far
+   after the STE phase has started, the model returns to the best state and the optimizer
+   state is cleared.
+2. Hard search (--generations, --population). A hill-climbing evolutionary search on the
+   exact discrete circuit, scored with the bit-packed simulator in stream_model.py. Each
+   generation mutates the current circuit (truth-table bit flips, and rewired inputs),
+   scores table mutants on a fresh train batch and rewired mutants on a fresh
+   architecture batch, and keeps the best mutant if it is no worse than the current
+   circuit. Defaults are --generations 1000 and --population 128.
+
+Training samples are generated fresh at every step from the recorded histograms (see
+spad.dataset.photons.sample_conditions). Run from SPAD/ with
+  python -m spad.training.train_stream --out runs/NAME [--device cuda] [options]
+It writes circuit.json (the final circuit), summary.json, history.jsonl and state.pt
+under --out. Pass --help for every option. Needs data/ from spad.dataset.* and
+data/asap7/costs.json from spad.hardware.costs.
+
 Truth tables train on the train split and routing on the architecture split.
 Checkpoints are chosen on the validation split. Test splits are never loaded.
 Hard search optimizes the exact discrete circuit that gradients only approximate.
@@ -37,10 +63,17 @@ from spad.core.stream_model import (StreamConfig, StreamCore, input_names, pack_
 
 
 def range_loss(prediction, target, delta=4.):
+    """Huber loss between predicted and target range bins (quadratic within `delta` bins, linear beyond)."""
     return torch.nn.functional.huber_loss(prediction, target, delta=delta)
 
 
 def expected_area(model, costs):
+    """Differentiable controller area: expected truth-table cost summed over all gates.
+
+    costs: the 16-entry "truth_table_costs" list from costs.json. Each gate's four table
+    logits give four independent Bernoulli probabilities, from which the probability of
+    each of the 16 truth tables follows. Counts only the learned gates, not the datapath.
+    """
     device = model.layers[0].routes.device
     tables = torch.tensor([[float((code >> i) & 1) for i in range(4)] for code in range(16)], device=device)
     areas = torch.tensor([x["area"] for x in costs], device=device)
@@ -65,14 +98,21 @@ class Validator:
         self.evidence = police.evidence(self.photons) if police else None
 
     def offset(self, circuit):
+        """Median signed error (bins) of a circuit on the train fit photons; subtracted before scoring."""
         return float((simulate_stream(circuit, self.fit_photons).float() - self.fit_targets).median())
 
     def __call__(self, circuit):
+        """Validation metrics (see baselines.metrics) for a circuit, after removing its train-fitted offset."""
         prediction = simulate_stream(circuit, self.photons).float() - self.offset(circuit)
         return metrics(prediction, self.targets)
 
     def audit(self, circuit, shift=24):
-        """Hidden-inspector report: never used to pick a circuit."""
+        """Hidden-inspector report: never used to pick a circuit.
+
+        Returns overall metrics, police violation rates, metrics by photon-count and
+        extra-ambient bucket, and a time-shift test (delay all photons by `shift` bins;
+        the range should move by the same amount).
+        """
         raw = simulate_stream(circuit, self.photons).float()
         prediction = raw - self.offset(circuit)
         report = {"overall": metrics(prediction, self.targets)}
@@ -104,7 +144,17 @@ class Validator:
 
 
 def mutate(inputs, codes, count, kind, base_bits, generator):
-    """Return `count` copies of a circuit, each with one or two random edits."""
+    """Return `count` copies of a circuit, each with one or two random edits.
+
+    inputs [layers, width, 2] and codes [layers, width] are a packed circuit (see
+    pack_circuit). The first edit is applied to every copy, a second to about 30% of them.
+    kind selects the mutation operator:
+      "table": flip one random bit of one gate's 4-bit truth table.
+      "prune": replace a gate by constant 0 or by a pass-through of input a or b (removes logic).
+      "wire":  rewire one input of a gate to a random source (base inputs, plus the
+               previous layer's outputs for layers after the first).
+    base_bits is the number of base inputs; generator is a torch.Generator.
+    """
     device = inputs.device
     inputs = inputs[None].repeat(count, 1, 1, 1)
     codes = codes[None].repeat(count, 1, 1)
@@ -129,7 +179,12 @@ def mutate(inputs, codes, count, kind, base_bits, generator):
 
 
 def population_losses(config, inputs, codes, data, police=None, police_weight=0.):
-    """Huber loss after each member's own constant offset, plus police violations (no area)."""
+    """Huber loss after each member's own constant offset, plus police violations (no area).
+
+    data is (photons [rays, steps], targets [rays], police evidence). Each member's
+    median error is subtracted first, because the final range has an arbitrary constant
+    bias that the validator removes the same way. Returns [members].
+    """
     photons, targets, evidence = data
     prediction = simulate_population_packed(config, inputs, codes, photons).float()
     error = prediction - targets[None]
@@ -144,7 +199,7 @@ def population_scores(config, inputs, codes, data, areas, area_weight, police=No
     """Huber loss after each member's own constant offset, plus area and police violations.
 
     With an area model, area is the whole-core estimate in µm²; without, the old sum of
-    controller truth-table areas.
+    controller truth-table areas (`areas` is the 16-entry cost table indexed by code).
     """
     if area_model is not None:
         return (population_losses(config, inputs, codes, data, police, police_weight)
@@ -160,6 +215,7 @@ def population_scores(config, inputs, codes, data, areas, area_weight, police=No
 
 
 def main():
+    """CLI entry point; see the module docstring for the phases and the options."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT/"data")
     parser.add_argument("--out", type=Path, required=True)
@@ -334,6 +390,7 @@ def main():
         consider(model.circuit(), {"phase": "start"})
 
     def step_on(split, optimizer, active, frozen, temperature, ste):
+        """One gradient step on a fresh photon batch from `split`, updating only the `active` parameters."""
         for p in frozen:
             p.requires_grad_(False)
         for p in active:
@@ -358,9 +415,11 @@ def main():
 
     while run["step"] < args.steps:
         step = run["step"]
-        progress = step/max(args.steps-1, 1)
+        progress = step/max(args.steps-1, 1)    # 0 at the first step, 1 at the last
+        # Geometric schedule: temperature = start * (end/start) ** progress.
         temperature = args.start_temperature*(args.end_temperature/args.start_temperature)**progress
-        ste = progress >= args.harden_after
+        ste = progress >= args.harden_after     # straight-through (hard forward, soft gradient) from here on
+        # Bilevel order: routing logits on the architecture split, then table logits on train.
         step_on(routing, architecture_optimizer, architecture, weights, temperature, ste)
         loss = step_on(train, weight_optimizer, weights, architecture, temperature, ste)
         run["step"] += 1
@@ -370,6 +429,9 @@ def main():
                 soft = metrics(model(sample, temperature=temperature), validator.targets[:2000])["mae_m"]
             mae = consider(model.circuit(), {"phase": "gradient", "step": run["step"], "loss": loss,
                                              "temperature": temperature, "straight_through": ste, "soft_mae_m": soft})
+            # Non-finite weights, or (once hardened) validation error above rollback_factor
+            # times the best, restore the best gradient state. Adam moments are cleared
+            # because they point along the path that fell off the cliff.
             broken = not all(torch.isfinite(p).all() for p in model.parameters())
             if broken or (ste and args.rollback_factor and mae > args.rollback_factor*run["best_mae"]):
                 # Hardened search can fall off a cliff that gradients cannot climb back up.
@@ -386,6 +448,8 @@ def main():
         template = run["best_circuit"]
         current = pack_circuit(run["search_circuit"] or template, device)
         base_bits = len(input_names(config))
+        # Accuracy objective: population//2 table mutants and population//2 wire mutants
+        # per generation. Area objective: population//3 each of table, wire and prune.
         half = max(args.population//2, 2)
         if args.objective == "area" and run["anchor_mae"] is None:
             run["anchor_mae"], run["best_area"] = run["best_mae"], circuit_area(template)
@@ -400,6 +464,8 @@ def main():
             photons = sample_conditions(split[0][pick], *conditions, generator)[0]
             return photons, split[1][pick], police.evidence(photons) if police is not None else None
         current_area = circuit_area(unpack_circuit(template, *current)) if args.objective == "area" else None
+        # Area objective (--objective area): shrink the circuit while keeping error within
+        # --accuracy-tolerance of the start. Skipped entirely for the accuracy objective.
         while args.objective == "area" and run["generation"] < args.generations:
             # Each mutant kind is scored on its own pixels, always next to the start circuit (member 1),
             # so the error budget is measured on the same photons as the mutants.
@@ -458,6 +524,8 @@ def main():
                 best = int(delta.argmin())
                 deltas.append(float(delta[best]))
                 members.append((inputs[best], codes[best]))
+            # deltas are (best mutant score - unmutated current score); lower is better.
+            # Accept the best mutant only if it is no worse than the current circuit.
             winner = 0 if deltas[0] <= deltas[1] else 1
             if deltas[winner] <= 0:
                 current = members[winner]

@@ -6,8 +6,9 @@ estimates for exploration, not a manufacturable chip.
 
 | Path | What it is |
 |---|---|
-| `designs/photon_core/` | Flow inputs: `photon_core.v` (exported from a `circuit.json`), `constraint.sdc` (1.5 ns clock), `config.mk` |
-| `run_flow.sh` | Runs the whole flow in the `openroad/orfs` image; output goes to `flow/` (scratch, gitignored) |
+| [`designs/photon_core/`](designs/photon_core/README.md) | Flow inputs: `photon_core.v` (exported from a `circuit.json`; currently the final design, same as [`../circuits/final/core.v`](../circuits/final/core.v)), `constraint.sdc` (1.5 ns clock), `config.mk` |
+| `run_flow.sh` | Runs the whole flow in the `openroad/orfs` image; output goes to `flow/` (scratch, not tracked in git) |
+| `draw_gates.py` | Draws a routed netlist (`6_final.v`) as a gate-symbol schematic, `gates.svg`. Needs Yosys and Node.js |
 | `results/` | Saved runs, one dated folder each, with a README |
 
 ## Results
@@ -18,9 +19,18 @@ estimates for exploration, not a manufacturable chip.
 
 ## Lay out another circuit (from SPAD/)
 
+You need Docker. The first run downloads the `openroad/orfs` image (several GB).
+The script runs it as `linux/amd64`, which is emulated and slow on Apple
+silicon. Set `ORFS_PLATFORM` (for example `ORFS_PLATFORM="--platform linux/arm64"`)
+or `ORFS_IMAGE` to change that.
+
+Export the Verilog from a `circuit.json`. Use a file from [`../circuits/`](../circuits/README.md)
+or one your own training run wrote under `runs/` (not tracked in git). Then run the flow:
+
 ```sh
 ../.venv/bin/python -c "import json; from spad.hardware.verilog import stream_verilog; \
   open('asic/designs/photon_core/photon_core.v','w').write(stream_verilog(json.load(open('runs/<run>/circuit.json'))))"
 asic/run_flow.sh
 ```
 Then copy the GDS, reports and images from `asic/flow/` into a new dated folder under `results/`.
+To draw the gates of the new netlist, run `python asic/draw_gates.py asic/results/<run>`.

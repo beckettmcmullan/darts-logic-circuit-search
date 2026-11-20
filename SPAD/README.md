@@ -1,8 +1,8 @@
 # Measuring distance one photon at a time
 
 Can a neural network design a circuit that measures distance from single photons
-without storing a histogram? This project searches for circuit using real
-single-photon sensor data to find task-driven insights from it.
+without storing a histogram? This project searches for such a circuit, using
+real single-photon sensor data to guide the search.
 
 The chosen circuit keeps **18 bits of memory per pixel** instead of a histogram
 of about **8,000 bits**. It measures distance to within **34 cm on 76% of
@@ -59,6 +59,11 @@ circuit behaves, are what training finds.
 Training has two phases.
 
 ### Phase 1: gradient training (DARTS), 1,500 steps
+
+DARTS (Differentiable Architecture Search) turns a choice between discrete
+options, here which wires a gate reads and which logic function it computes, into
+a weighted blend. Gradient descent can then tune the blend like any other
+parameter.
 
 ![DARTS: every gate starts connected to every input](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/explainer/03_darts_routing.webp)
 
@@ -211,18 +216,19 @@ The chosen circuit was turned into a real layout with
 an open-source tool chain that takes a circuit description through every step
 of physical chip design: converting it into standard cells, placing those cells,
 building the clock network, routing the wires and checking the result. The cells
-come from **ASAP7**, a predictive 7 nm teaching library.
+come from **ASAP7**, a predictive 7 nm teaching library: its cell sizes and
+delays are modelled on a 7 nm process, but no factory makes it.
 
 | Result | Chosen circuit |
 |---|---|
-| Timing | Met at a 1.5 ns clock, with 609 ps to spare |
+| Setup slack | +609 ps at a 1.5 ns clock (the margin by which the slowest path meets the clock) |
 | Fastest clock after routing | 682 ps, about 1.47 GHz |
-| Hold margin | 42 ps |
-| Clock skew | 2.6 ps |
+| Hold slack | +42 ps (the margin against signals changing too soon after a clock edge) |
+| Clock skew | 2.6 ps (the difference in clock arrival time between memory bits) |
 | Die | 110 µm² (about 10.5 × 10.5 µm) |
 | Cells | 451, using 44.1 µm² (49% of the core) |
 | Wire length | 916 µm |
-| Design-rule errors after routing | 0 |
+| Design-rule check (DRC) errors after routing | 0 |
 | Power | 71 µW, assuming the circuit switches on every clock |
 
 The layout uses more cell area than the logic alone (26.8 µm²) because the flow
@@ -244,7 +250,8 @@ The pictures below were produced by the flow itself.
 
 The slowest signal path sets the fastest clock: a signal needs 682 ps to travel
 from one memory bit, through the comparator and controller, to the next memory
-bit. The layout file, routed circuit and full timing report are in
+bit. The layout file (GDSII, the standard file format for chip layouts), routed
+circuit and full timing report are in
 [`asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md).
 
 **Every gate in the layout:** [`gates.svg`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/gates.svg) draws all 381
@@ -279,13 +286,19 @@ inside a dashed outline. The image is large, so open it and zoom in.
 | [`spad/core/`](spad/core/) | The circuit model and its exact simulators |
 | [`spad/training/`](spad/training/) | The search, the physics check and the comparison methods |
 | [`spad/hardware/`](spad/hardware/) | Verilog export, ASAP7 synthesis, timing and the area estimate |
-| [`circuits/`](circuits/) | The chosen circuit and its area-optimized version, as `circuit.json` and Verilog |
-| [`asic/`](asic/README.md) | OpenROAD flow inputs, the run script and the routed layout |
+| [`spad/README.md`](spad/README.md) | Map of the Python package and how data moves through it |
+| [`circuits/`](circuits/README.md) | The chosen circuit and its area-optimized version, as `circuit.json` and Verilog |
+| [`asic/`](asic/README.md) | OpenROAD flow inputs, the run script, the gate-drawing script and the routed layout |
+| [`requirements.txt`](requirements.txt) | Python packages |
+
+Folders created when you run things (`data/`, `runs/`, `asic/flow/`) are not
+tracked in git.
 
 ## Running it
 
 You need Python with the packages in [`requirements.txt`](requirements.txt).
-Run everything from this `SPAD/` folder:
+Run everything from this `SPAD/` folder. The first command downloads the
+dataset into `data/`; the others read and extend it:
 
 ```bash
 python -m spad.dataset.download      # fetch SP-TransientBench

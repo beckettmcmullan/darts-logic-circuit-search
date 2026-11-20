@@ -5,6 +5,33 @@ learned state bits, and no histogram. Per photon, the datapath compares the
 arrival with the candidate. The controller maps those comparison flags and its
 own state to actions. After the photon budget, the candidate is the range bin.
 Distances enter as thermometer flags, because Boolean gates use them directly.
+
+Per-photon datapath (fixed, not learned). For arrival `a` and candidate `c`
+(both in time bins of 750 ps, 0..1023 with the default cand_bits=10):
+  distance = a - c, size = |distance|
+  near{w}  : size <= w for each window w (default 1, 2, 4, 8, 16)
+  gt, lt   : a > c, a < c
+  zero     : confidence == 0
+  conf2/4/8: confidence >= 2, 4, 8
+  full     : confidence == 2**conf_bits - 1
+  const0, const1 : constants
+  state{i} : the learned memory bits from the previous photon
+These (see input_names) are the base signals. Three layers of two-input gates
+read them (layer k>0 can also read layer k-1's outputs). The last layer's
+outputs are, in order: next state bits, then the five actions in ACTIONS:
+  replace: candidate <- arrival
+  up/down: candidate +1 / -1, saturating at 0 and 2**cand_bits - 1
+  inc/dec: confidence +1 / -1, saturating at 0 and 2**conf_bits - 1
+(up with down, or inc with dec, cancel). A photon with arrival < 0 is padding
+and changes nothing.
+
+Four implementations of the same circuit live here; they must agree:
+  StreamCore.forward / forward_reference : float, differentiable (training)
+  simulate_stream                        : integer, one circuit (the reference)
+  simulate_population                    : integer, many circuits at once
+  simulate_population_packed             : same, bit-sliced 64 rays per word
+The exported circuit dictionary ("photon-stream-core-v1") holds, per layer, the
+source index of both gate inputs and the 4-entry truth table (order 00, 01, 10, 11).
 """
 from dataclasses import asdict, dataclass
 
@@ -19,6 +46,17 @@ CONF_LEVELS = (2, 4, 8)
 
 @dataclass
 class StreamConfig:
+    """Datapath and controller sizes.
+
+    state_bits: learned memory bits carried from photon to photon.
+    width: gates per layer; the last layer needs state_bits + 5 outputs.
+    layers: gate layers (the controller depth).
+    conf_bits: width of the saturating confidence counter (flags use levels 2, 4, 8, max).
+    cand_bits: width of the candidate register, in time bins (default 10, so 0..1023;
+        the 672-bin histogram range fits).
+    windows: distances (in bins) tested by the near flags; must be powers of two for
+        the packed simulator (see packable).
+    """
     state_bits: int = 4
     width: int = 16
     layers: int = 3
@@ -35,17 +73,33 @@ class StreamConfig:
 
 
 def input_names(c):
+    """Names of the base signals the first gate layer can read, in index order.
+
+    Circuit "inputs" entries index into this list (layer 0) or into this list
+    followed by the previous layer's outputs (later layers).
+    """
     return ([f"near{w}" for w in c.windows] + ["gt", "lt", "zero"]
             + [f"conf{level}" for level in CONF_LEVELS] + ["full", "const0", "const1"]
             + [f"state{i}" for i in range(c.state_bits)])
 
 
 def _flag(hard, soft, mode):
-    """Boolean forward value; the surrogate supplies gradients unless fully soft."""
+    """Boolean forward value; the surrogate supplies gradients unless fully soft.
+
+    mode "soft": return the smooth sigmoid surrogate. Otherwise (straight-through):
+    the value is the exact Boolean `hard`, the gradient is that of `soft`.
+    """
     return soft if mode == "soft" else soft + (hard.float() - soft).detach()
 
 
 class StreamCore(nn.Module):
+    """Differentiable model of the per-pixel photon-stream circuit.
+
+    Input photons are [rays, steps] integer arrival bins (750 ps each), -1 where a
+    ray has no photon. forward() returns the final candidate bin per ray, [rays],
+    as a float. Modes: soft (default), ste=True (Boolean forward, soft gradient)
+    and hard=True (the exact discrete circuit, via forward_reference).
+    """
     def __init__(self, config=None):
         super().__init__()
         self.config = c = config or StreamConfig()
@@ -54,8 +108,11 @@ class StreamCore(nn.Module):
             GateLayer(self.base_bits if i == 0 else self.base_bits + c.width, c.width)
             for i in range(c.layers)])
         with torch.no_grad():
+            # Index of the first state signal among the base inputs.
             state = self.base_bits - c.state_bits
             for layer in self.layers:
+                # Random start: near-zero routing logits, plus a strong bump on two random
+                # sources per gate so each input begins close to one-hot.
                 layer.routes.normal_(0, 0.01)
                 sources = layer.routes.shape[-1]
                 picks = torch.randint(sources, (c.width, 2))
@@ -69,12 +126,21 @@ class StreamCore(nn.Module):
                 last.table_logits[i] = torch.tensor([-2., -2., 2., 2.])
 
     def architecture_parameters(self):
+        """Routing logits (optimized on the architecture split)."""
         return [layer.routes for layer in self.layers]
 
     def weight_parameters(self):
+        """Truth-table logits (optimized on the training split)."""
         return [layer.table_logits for layer in self.layers]
 
     def features(self, candidate, confidence, arrival, state, mode):
+        """Comparator flags [rays, base_bits] for one photon (order as input_names).
+
+        candidate, confidence, arrival: float tensors [rays] (bins / counter value).
+        state: [rays, state_bits]. The sigmoid surrogates are centred on the Boolean
+        threshold (e.g. size <= w becomes sigmoid((w + .5 - size) / (.25 w + 1))), so
+        they are near 0.5 only at the boundary.
+        """
         c = self.config
         distance = arrival - candidate
         size = distance.abs()
@@ -131,11 +197,22 @@ class StreamCore(nn.Module):
     _compiled = None
 
     def set_compile(self, mode=None):
-        """mode: None (eager), "default", or "reduce-overhead" (CUDA graphs)."""
+        """Choose how the per-photon step runs: None (eager), "default", or "reduce-overhead" (CUDA graphs).
+
+        Returns self. If compilation fails on this device, forward() falls back to eager.
+        """
         self._compiled = None if not mode else torch.compile(_fused_step, mode=mode, dynamic=False)
         return self
 
     def forward(self, photons, temperature=1., hard=False, ste=False):
+        """Run the photon streams through the circuit; returns final candidates [rays] (float).
+
+        photons: [rays, steps] int arrival bins, -1 for no photon.
+        temperature: softmax temperature of the routing (lower = closer to one-hot).
+        hard: exact discrete circuit (slow path). ste: Boolean forward, soft gradient.
+        With neither, everything is soft. Gradients flow through the candidate via the
+        replace/up/down actions.
+        """
         if hard:
             return self.forward_reference(photons, temperature, hard=True)   # exact discrete path
         c = self.config
@@ -144,6 +221,9 @@ class StreamCore(nn.Module):
         for layer in self.layers:
             routing, table = layer.prepared(temperature, False, ste)
             width, _, sources = routing.shape
+            # The multilinear gate expands to c0 + a*(c2-c0) + b*(c1-c0) + a*b*(c3-c2-c1+c0)
+            # for table entries c0..c3 = outputs for (a,b) = 00, 01, 10, 11. The four
+            # coefficients depend only on the table, so they are computed once per pass.
             weight = routing.transpose(0, 1).reshape(2 * width, sources).T     # [sources, 2*width]: all a, then all b
             c0, c1, c2, c3 = table.unbind(-1)
             layers.append((weight, c0, c1 - c0, c2 - c0, c3 - c2 - c1 + c0))
@@ -168,6 +248,7 @@ class StreamCore(nn.Module):
         return self._run(_fused_step, start, arrivals, valids, windows, levels, consts, layers, binary)
 
     def _run(self, step, start, arrivals, valids, windows, levels, consts, layers, binary):
+        """Loop `step` over the photon sequence; arrivals/valids are [steps, rays]."""
         c = self.config
         candidate, confidence, state = start
         for k in range(len(arrivals)):
@@ -178,6 +259,7 @@ class StreamCore(nn.Module):
 
     @torch.no_grad()
     def circuit(self):
+        """Harden the model and export it as a photon-stream-core-v1 dictionary."""
         layers = []
         for layer in self.layers:
             routes, table = layer.prepared(hard=True)
@@ -187,7 +269,11 @@ class StreamCore(nn.Module):
 
     @torch.no_grad()
     def load_circuit(self, circuit, sharpness=4.):
-        """Set logits so the hard model equals a circuit, with room to keep learning."""
+        """Set logits so the hard model equals a circuit, with room to keep learning.
+
+        Each chosen route gets logit +sharpness over a near-zero background; each table
+        entry gets +/- sharpness/2 (a 1 maps to +sharpness/2, a 0 to -sharpness/2).
+        """
         for layer, spec in zip(self.layers, circuit["layers"]):
             layer.routes.normal_(0, 0.01)
             device = layer.routes.device
@@ -199,6 +285,8 @@ class StreamCore(nn.Module):
 def _fused_step(candidate, confidence, state, arrival, valid, windows, levels, consts, layers, binary,
                 state_bits: int, top_c: float, top_q: float):
     """One photon through the comparator, the gate layers and the update (soft or STE)."""
+    # Same flags and update as StreamCore.features / forward_reference, vectorized over
+    # all windows and levels. `layers` holds the precomputed (weight, c0, ...) coefficients.
     distance = arrival - candidate
     size = distance.abs()
     near = ((windows + .5 - size[:, None]) / (.25 * windows + 1)).sigmoid()
@@ -229,7 +317,16 @@ def _fused_step(candidate, confidence, state, arrival, valid, windows, levels, c
 
 
 def rule_circuit(config=None, window=8):
-    """Hand-written rule: majority vote within a window, plus a one-bin median step."""
+    """Hand-written baseline circuit in the same format as a trained one.
+
+    Uses only the window flag `near{window}` (in bins), gt/lt, zero, and constants:
+      replace if the confidence is zero and the photon is outside the window;
+      step up (down) one bin if the photon is inside the window and later (earlier);
+      confidence +1 if inside the window or confidence is zero; -1 otherwise
+        (the table 1,0,0,0 is NOR of near and zero).
+    Gates in layers before the last are constant 0 and unused. Each state bit
+    just holds its value.
+    """
     c = config or StreamConfig()
     names = input_names(c)
     near, zero, gt, lt = (names.index(n) for n in (f"near{window}", "zero", "gt", "lt"))
@@ -254,7 +351,12 @@ def rule_circuit(config=None, window=8):
 
 @torch.no_grad()
 def simulate_stream(circuit, photons):
-    """Independent integer implementation of the core. Returns final candidates."""
+    """Independent integer implementation of the core. Returns final candidates.
+
+    circuit: a photon-stream-core-v1 dictionary. photons: [rays, steps] integer
+    arrival bins, -1 = no photon. Returns [rays] long candidate bins (750 ps each).
+    This is the reference the other simulators and the Verilog netlist are checked against.
+    """
     c = StreamConfig(**circuit["config"])
     rays = len(photons)
     photons = photons.long()
@@ -288,7 +390,10 @@ def simulate_stream(circuit, photons):
 
 
 def pack_circuit(circuit, device=None):
-    """Return wiring [layers, width, 2] and truth tables as 4-bit codes [layers, width]."""
+    """Return wiring [layers, width, 2] and truth tables as 4-bit codes [layers, width].
+
+    A code is sum(table[i] << i), with i = 2a + b, so bit 0 is the output for (0, 0).
+    """
     inputs = torch.tensor([x["inputs"] for x in circuit["layers"]], device=device)
     tables = torch.tensor([x["truth_tables"] for x in circuit["layers"]], device=device)
     codes = (tables << torch.arange(4, device=device)).sum(-1).int()
@@ -304,7 +409,11 @@ def unpack_circuit(template, inputs, codes):
 
 
 def _pack_bits(bits):
-    """Pack booleans [..., rays] into int64 words [..., ceil(rays/64)], 64 rays per word."""
+    """Pack booleans [..., rays] into int64 words [..., ceil(rays/64)], 64 rays per word.
+
+    Ray r goes to bit (r % 64) of word (r // 64). The packed simulator treats each
+    bit position as an independent ray, so one bitwise op on a word acts on 64 rays.
+    """
     rays = bits.shape[-1]
     words = -(-rays // 64)
     bits = torch.nn.functional.pad(bits.long(), (0, words*64 - rays)).reshape(*bits.shape[:-1], words, 64)
@@ -313,6 +422,7 @@ def _pack_bits(bits):
 
 
 def _unpack_bits(words, rays):
+    """Inverse of _pack_bits: int64 words [..., W] to 0/1 values [..., rays]."""
     shifts = torch.arange(64, device=words.device)
     return ((words[..., None] >> shifts) & 1).reshape(*words.shape[:-1], -1)[..., :rays]
 
@@ -324,7 +434,11 @@ def packable(config):
 
 
 def _subtract(x, y, none):
-    """x - y on bit-planes: (difference planes, borrow-out plane meaning x < y)."""
+    """x - y on bit-planes: (difference planes, borrow-out plane meaning x < y).
+
+    x, y are lists of planes, least significant first; each plane holds one bit of
+    64 rays per word. This is a ripple-borrow subtractor written as bitwise logic.
+    """
     borrow, out = none, []
     for xi, yi in zip(x, y):
         out.append(xi ^ yi ^ borrow)
@@ -343,11 +457,12 @@ def _suffix_or(planes, none):
 
 def _step_counter(planes, up, down):
     """Saturating +1/-1 (both or neither: hold), on bit-planes."""
+    # top: counter is all ones (cannot go up); bottom: all zeros (cannot go down).
     top, bottom = planes[0], ~planes[0]
     for p in planes[1:]:
         top, bottom = top & p, bottom & ~p
     carry, borrow = up & ~down & ~top, down & ~up & ~bottom
-    result = []
+    result = []   # ripple-carry increment, then ripple-borrow decrement
     for p in planes:
         result.append(p ^ carry)
         carry = p & carry
@@ -369,14 +484,14 @@ def _packed_step(cand, conf, state, a_planes, valid, wires, masks, window_bits, 
     valid = valid[None]
     above_d, lt = _subtract(a, cand_l, none)        # arrival - candidate; borrow: arrival < candidate
     below_d, gt = _subtract(cand_l, a, none)        # candidate - arrival; borrow: arrival > candidate
-    size = [(gt & x) | (~gt & y) for x, y in zip(above_d, below_d)]
+    size = [(gt & x) | (~gt & y) for x, y in zip(above_d, below_d)]   # |arrival - candidate| bit-planes
     above = _suffix_or(size, none)
     lower, acc = [none], none                         # lower[k] = OR of size[:k]
     for plane in size:
         acc = acc | plane
         lower.append(acc)
     flags = []
-    for k in window_bits:
+    for k in window_bits:   # window w = 2**k, so "size <= w" needs only the planes at and above bit k
         exact = size[k] & ~above[k + 1] & ~lower[k]     # size == 2**k
         flags.append(~above[k] | exact)                 # size <= 2**k
     conf_above = _suffix_or(conf_l, none)
@@ -388,6 +503,8 @@ def _packed_step(cand, conf, state, a_planes, valid, wires, masks, window_bits, 
     flags += [full, none, ones]
     base = torch.stack(flags + state_l, 1)            # [circuits, inputs, words]
     pool, out = base, base
+    # Each gate is a 4-way select. masks are all-ones/all-zeros words (-bit), so
+    # (t & x & y) style terms pick the truth-table entry for each ray's (x, y).
     for wire, (t0, t1, t2, t3) in zip(wires, masks):
         index = wire[..., None].expand(-1, -1, -1, words)
         x = pool.gather(1, index[:, :, 0])
@@ -425,7 +542,7 @@ def simulate_population_packed(config, inputs, codes, photons):
     The per-photon step can be fused with set_search_compile().
     """
     c = config
-    if not packable(c):
+    if not packable(c):   # window sizes that are not powers of two use the plain simulator
         return simulate_population(config, inputs, codes, photons)
     circuits, rays = len(inputs), len(photons)
     device = photons.device
@@ -438,6 +555,7 @@ def simulate_population_packed(config, inputs, codes, photons):
     cand = torch.zeros((circuits, cb, words), dtype=torch.long, device=device)
     conf = torch.zeros((circuits, qb, words), dtype=torch.long, device=device)
     state = torch.zeros((circuits, sb, words), dtype=torch.long, device=device)
+    # -(bit) turns a 0/1 table entry into an all-zero / all-one 64-bit word.
     masks = tuple(tuple(-((codes[:, layer, :, None].long() >> i) & 1) for i in range(4)) for layer in range(c.layers))
     wires = tuple(inputs[:, layer].long() for layer in range(c.layers))         # [circuits, width, 2]
     window_bits = tuple(w.bit_length() - 1 for w in c.windows)
@@ -459,6 +577,7 @@ def _run_packed(step, cand, conf, state, arrival_all, valid_all, wires, masks, w
 
 
 def _unpack_candidates(cand, rays):
+    """Rebuild integer candidates [circuits, rays] from bit-planes [circuits, bits, words]."""
     return sum(_unpack_bits(cand[:, i], rays) << i for i in range(cand.shape[1])).int()
 
 
@@ -466,7 +585,8 @@ def _unpack_candidates(cand, rays):
 def simulate_population(config, inputs, codes, photons):
     """Run many circuits on shared rays at once. Returns candidates [circuits, rays].
 
-    Takes wiring [circuits, layers, width, 2] and codes [circuits, layers, width].
+    Takes wiring [circuits, layers, width, 2] and codes [circuits, layers, width]
+    (see pack_circuit), and photons [rays, steps] of arrival bins (-1 = none).
     Matches simulate_stream for every member, so it is safe for discrete search.
     """
     c = config

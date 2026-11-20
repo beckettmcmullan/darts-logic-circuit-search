@@ -12,7 +12,7 @@ whether the circuit's range is a time the physics could have produced:
 2. Poisson point-process likelihood. Arrivals are modelled as an inhomogeneous
    Poisson process, rate(t) = background + signal * pulse(t - tau). Conditioned on
    the photon count, that is the per-photon density q(t) = (1-w)/672 + w*pulse(t-tau),
-   whose negative log-likelihood is the user's
+   whose negative log-likelihood is, up to a constant,
        R_renewal = integral(rate) - sum_i ln(rate(t_i) + rate_dark)
    with the signal share w profiled out and dark counts folded into the background.
    Ranges whose likelihood ratio against the best range exceeds the chi-squared
@@ -23,6 +23,16 @@ An answer is flagged only if it is more than `tolerance` bins (default 3, 0.34 m
 range, so a 1-bin quantized circuit is not punished for lacking sub-bin precision.
 The pulse shape is measured from training histograms (label-free); the published
 IRF is about 3 bins wide, but 3x3 binning and surface slant make real returns ~10.
+
+How train_stream.py uses it:
+  - Police.evidence(photons) is computed once per photon batch (no gradient).
+  - Police.penalty(candidate, evidence) is a hinge, in bins, added to the gradient loss
+    (weight --police-weight). It is differentiable in the candidate.
+  - Police.violations(...) gives 0/1 flags per ray, used in the exact search
+    (weight --police-search-weight) and in the audit report.
+Because the circuit has a constant bias against pulse-peak time, a per-batch constant
+offset (median gap to the maximum-likelihood tau on rays with a CFAR detection) is
+removed before comparing; see Police.offset. Bins are 750 ps (about 0.1124 m).
 """
 import torch
 
@@ -32,7 +42,13 @@ BINS = 672
 
 
 def measure_pulse(histograms, span=(-6, 14), min_snr=8., rays=20000):
-    """Median background-subtracted return shape, aligned at each ray's peak."""
+    """Median background-subtracted return shape, aligned at each ray's peak.
+
+    histograms: [rays, 672] counts. span: bins before/after the peak to keep. Only
+    rays with peak-over-background SNR above min_snr count. Returns (pulse, zero):
+    `pulse` is a probability vector over len(span) bins, and `zero` is the index of
+    the peak inside it (pulse[k] sits at offset k - zero from the peak).
+    """
     h = histograms[:rays].double()
     peak = h.argmax(1)
     background = h.median(1).values
@@ -56,6 +72,14 @@ def _nearest(mask):
 
 
 class Police:
+    """Label-free plausibility check on range estimates; see the module docstring.
+
+    pulse, zero: from measure_pulse. tolerance: allowed distance (bins) to an accepted
+    range. pfa: false alarm probability per ray for the CFAR test (divided by 672
+    positions). chi2: likelihood-ratio cut (6.63 is the 99% point of chi-squared, 1 dof).
+    guard, train_cells: bins skipped / bins averaged on each side of the CFAR window.
+    signal_shares: grid of signal fractions w tried when profiling the likelihood.
+    """
     def __init__(self, pulse, zero, tolerance=3., pfa=0.01, chi2=6.63, guard=6, train_cells=32,
                  signal_shares=(.02, .05, .1, .2, .3, .45, .6, .75, .9)):
         self.pulse, self.zero = pulse, zero          # pulse[k] at offset k - zero from the peak
@@ -67,12 +91,21 @@ class Police:
         self.core = (int((mass < .075).sum()), int((mass < .925).sum()) + 1)
 
     def to(self, device):
+        """Move the tensors to `device`; returns self."""
         self.pulse, self.shares = self.pulse.to(device), self.shares.to(device)
         return self
 
     @torch.no_grad()
     def evidence(self, photons):
-        """Per-ray accepted ranges from the photons alone. Runs once per photon batch."""
+        """Per-ray accepted ranges from the photons alone. Runs once per photon batch.
+
+        photons: [rays, steps] arrival bins, -1 = none. Returns a dict of tensors:
+          nearest [rays, 672]      distance table to the nearest accepted bin (likelihood or CFAR)
+          cfar_nearest [rays, 672] same, using CFAR detections only
+          likely_width, detections [rays]  number of bins passing each test
+          any_detection [rays] bool, tau_ml [rays] maximum-likelihood return bin
+          photons [rays]           photon count
+        """
         counts = photon_histogram(photons).float()
         n = counts.sum(1)
         k = len(self.pulse)
@@ -83,6 +116,8 @@ class Police:
         log_rate = torch.log(background[:, None] + self.shares[:, None] * self.pulse[None])   # [W, k]
         inside = windows.sum(-1, keepdim=True)
         nll = -((n[:, None, None] - inside) * background.log()[None, None] + windows @ log_rate.T)
+        # Extra "no signal" hypothesis (pure uniform background) joins the profile, so
+        # a ray with no return does not force a spurious best tau.
         nll = torch.cat((nll, -(n[:, None] * torch.log(torch.tensor(1. / BINS)))[..., None].expand(-1, BINS, 1)), -1)
         nll = nll.min(-1).values                                   # profile out the signal share
         best = nll.min(1, keepdim=True).values
@@ -116,7 +151,11 @@ class Police:
                 "any_detection": detected.any(1), "tau_ml": tau_ml, "photons": n}
 
     def offset(self, candidate, evidence):
-        """Label-free constant aligning a circuit's output with pulse-peak time."""
+        """Label-free constant aligning a circuit's output with pulse-peak time.
+
+        candidate: [..., rays] circuit outputs (bins). Returns the median of
+        (candidate - tau_ml) over rays that have a CFAR detection, shape [..., 1].
+        """
         use = evidence["any_detection"].expand_as(candidate)
         gap = (candidate.detach() - evidence["tau_ml"]).masked_fill(~use, float("nan"))
         return gap.nanmedian(-1, keepdim=True).values.nan_to_num(0.)
@@ -142,7 +181,11 @@ class Police:
                 "likelihood": physics > self.tolerance}
 
     def penalty(self, candidate, evidence):
-        """Differentiable hinge, in bins, for gradient training."""
+        """Differentiable hinge, in bins, for gradient training.
+
+        Mean over rays of relu(distance - tolerance) to the accepted ranges, plus the
+        same to the CFAR detections (only for rays that have one); each term capped at 50.
+        """
         physics, cfar = self.distances(candidate, evidence)
         cfar = torch.where(evidence["any_detection"], cfar, torch.zeros_like(cfar))
         hinge = lambda d: torch.relu(d - self.tolerance).clamp(max=50.)

@@ -1,4 +1,14 @@
-"""Download a pinned, bounded subset; never clone the full dataset or use an HF cache."""
+"""Download a pinned, bounded subset; never clone the full dataset or use an HF cache.
+
+First step of the data pipeline. Fetches, from the SP-TransientBench dataset on
+Hugging Face, the histograms and reference point clouds of depth captures 1-10, a few
+config files, and the ASAP7 Liberty cell libraries from GitHub. Revisions are pinned
+in data/manifest.json (with a SHA-256 for each file) and total size is capped by
+--budget-bytes. Output goes under --root (default SPAD/data): raw/, asap7/, manifest.json.
+
+Usage (from SPAD/):  python -m spad.dataset.download [--root DIR] [--budget-bytes N]
+Next step: spad.dataset.prepare.
+"""
 import argparse
 import hashlib
 import json
@@ -18,15 +28,24 @@ SPLITS = {"train": [1, 2, 3, 4], "architecture": [5], "validation": [6],
 
 
 def get_json(url):
+    """GET a URL and parse the JSON response (60 s timeout)."""
     with urllib.request.urlopen(url, timeout=60) as response:
         return json.load(response)
 
 
 def usage(root):
+    """Total size in bytes of every file under `root`; compared against the storage budget."""
     return sum(p.stat().st_size for p in root.rglob("*") if p.is_file())
 
 
 def fetch(url, path, root, budget, expected=None):
+    """Download `url` to `path` unless it exists; return the file's SHA-256 hex digest.
+
+    root/budget: the data folder and its byte budget; the download aborts if it
+    would push usage(root) over the budget. expected: optional SHA-256 to check.
+    The file is written to a .part file first, so an interrupted run never leaves
+    a truncated file under the final name.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -58,6 +77,7 @@ def fetch(url, path, root, budget, expected=None):
 
 
 def main():
+    """CLI entry point: fetch the pinned files, updating manifest.json as it goes."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT / "data")
     parser.add_argument("--budget-bytes", type=int, default=1_200_000_000)

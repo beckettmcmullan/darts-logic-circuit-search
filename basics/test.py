@@ -1,3 +1,11 @@
+"""Sanity check of the PyTorch training loop on one data point.
+
+A single linear layer (prediction = x * weight + bias) is trained to map x = 2 to y = 4. There is no
+architecture search here. It only shows the loop that every later script uses:
+zero the gradients, predict, compute the loss, backpropagate, step.
+
+Run: python3 basics/test.py
+"""
 import torch
 from torch import nn
 

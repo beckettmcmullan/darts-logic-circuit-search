@@ -9,6 +9,14 @@ selection captures. Test captures receive the frozen result and are not scored.
 The SPAD peak is the alignment reference, so this self-calibrates the two
 sensors. It is not an independent measure of truth, and it gives peak-based
 estimators a small home advantage. Original labels stay in {capture}.npz.
+
+Third step of the data pipeline (after download and prepare). Writes
+processed/labels_{capture}.npz (refined target bins, labelled mask, clean mask) and
+processed/calibration_report.json. The search is coordinate descent: for each of four
+step scales, move each parameter up or down while the mean over training captures of
+the median peak-to-label error (metres) keeps falling.
+
+Usage (from SPAD/):  python -m spad.dataset.calibration [--root DIR]
 """
 import argparse
 import json
@@ -26,7 +34,12 @@ STEPS = ((4., 4., 2., 2., .04, .02), (2., 2., 1., 1., .02, .01), (1., 1., .5, .5
 
 
 def edge_free(depth, radius=1, tolerance=0.3):
-    """True where labelled neighbours agree, so a small misprojection is harmless."""
+    """True where labelled neighbours agree, so a small misprojection is harmless.
+
+    depth: flat [192*256] ranges in metres (inf = unlabelled). A pixel is edge-free if
+    at least two labelled pixels lie in its (2*radius+1)^2 window and their ranges span
+    at most `tolerance` metres. Returns a flat bool array.
+    """
     grid = depth.reshape(HEIGHT, WIDTH)
     padded = np.pad(grid, radius, constant_values=np.inf)
     low, high = np.full(grid.shape, np.inf), np.full(grid.shape, -np.inf)
@@ -42,11 +55,13 @@ def edge_free(depth, radius=1, tolerance=0.3):
 
 
 def project(points, transform, values):
+    """project_ranges with intrinsics given as a list in NAMES order (fx, fy, cx, cy, k1, k2)."""
     intrinsics = dict(zip(NAMES[:4], values[:4]))
     return project_ranges(points, transform, intrinsics, values[4], values[5])
 
 
 def label_error(capture, transform, offsets, values, bin_offset):
+    """Median |histogram peak - projected label| in metres over a capture's sampled pixels."""
     depth = project(capture["points"], transform, values)[capture["pixels"]]
     finite = np.isfinite(depth)
     bins = (depth+offsets[capture["pixels"]])/BIN_METERS + bin_offset
@@ -54,6 +69,7 @@ def label_error(capture, transform, offsets, values, bin_offset):
 
 
 def refine(captures, transform, offsets, start, bin_offset):
+    """Coordinate-descent fit of the six intrinsics from `start`; returns (values, best error in m)."""
     values = list(start)
     score = lambda v: float(np.mean([label_error(c, transform, offsets, v, bin_offset) for c in captures]))
     best = score(values)
@@ -75,6 +91,7 @@ def refine(captures, transform, offsets, start, bin_offset):
 
 
 def main():
+    """CLI entry point: fit on the training captures, then write labels for all depth captures."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT/"data")
     args = parser.parse_args()

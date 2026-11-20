@@ -103,12 +103,12 @@ The program needs Python with PyTorch and Matplotlib installed. From the
 repository root:
 
 ```
-python full-adder-discovery/DARTS4.py
+python3 basics/full-adder-discovery/DARTS4.py
 ```
 
 Runtime depends on the machine and settings. It prints the circuits it found and,
 if any succeed, saves the chart to
-`full-adder-discovery/figures/darts4_loss.png`. Options include `--circuits` (number of
+`basics/full-adder-discovery/figures/darts4_loss.png`. Options include `--circuits` (number of
 attempts), `--nodes` (gate slots per circuit), `--steps` (training length),
 `--seed` (a different random starting point) and `--noise` (amount of
 randomness).

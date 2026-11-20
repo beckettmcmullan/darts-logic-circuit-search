@@ -1,4 +1,17 @@
-"""Project independent Livox ranges into the SPL grid and select labelled rays."""
+"""Project independent Livox ranges into the SPL grid and select labelled rays.
+
+Second step of the data pipeline. For each depth capture in the manifest's splits,
+this reads the raw 49152 x 672 histogram map (256 x 192 pixels, 672 bins of 750 ps)
+and the matching Livox reference point cloud, projects the cloud into the SPAD image
+with the released intrinsics, converts each pixel's range to a target time bin, and
+saves a random sample of up to --max-rays labelled rays per capture to
+processed/{capture}.npz plus processed/metadata.json. Labels are later refined by
+spad.dataset.calibration.
+
+Target bin = (range_m + pixel_offset_m) / BIN_METERS + --bin-offset.
+
+Usage (from SPAD/):  python -m spad.dataset.prepare [--root DIR] [--max-rays N] ...
+"""
 import argparse
 import json
 from pathlib import Path
@@ -8,6 +21,7 @@ import numpy as np
 from spad import ROOT
 from spad.dataset.download import usage
 
+# Range per time bin: speed of light x 750 ps, halved for the round trip (about 0.1124 m).
 BIN_METERS = 299_792_458 * 750e-12 / 2
 INTRINSICS = {
     "p1": dict(fx=120.940059132687, fy=121.125671532013,
@@ -22,6 +36,10 @@ def project_ranges(points, sp_to_livox, intrinsics, k1, k2, width=256, height=19
 
     No interpolation or label filling. A pixel is labelled only if a reference
     return projects into it. Nearest positive range handles multiple returns.
+
+    points: [n, 3] Livox xyz in metres. sp_to_livox: 4x4 SPAD-to-Livox transform.
+    intrinsics: dict with fx, fy, cx, cy (pixels). k1, k2: radial distortion terms.
+    Returns a flat [width*height] array of ranges in metres, inf where unlabelled.
     """
     points = np.asarray(points, dtype=np.float64)
     good = np.isfinite(points).all(1) & (np.linalg.norm(points, axis=1) > 0)
@@ -44,6 +62,10 @@ def project_ranges(points, sp_to_livox, intrinsics, k1, k2, width=256, height=19
 
 
 def load_intrinsics(path, device):
+    """Read the scalar calibration of `device` ("p1" or "p2") from the dataset's config.yaml.
+
+    Returns a dict with fx, fy, cx, cy, k1, k2 (and any other numbers in that block).
+    """
     # The small released YAML only needs scalar calibration values; avoid a new dependency.
     active = False
     values = {}
@@ -64,6 +86,7 @@ def load_intrinsics(path, device):
 
 
 def main():
+    """CLI entry point; see the module docstring."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT / "data")
     parser.add_argument("--device-calibration", choices=INTRINSICS, default="p2")

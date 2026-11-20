@@ -1,4 +1,13 @@
-"""Export cores and the fixed peak detector to Verilog, and check a Yosys netlist."""
+"""Export cores and the fixed peak detector to Verilog, and check a Yosys netlist.
+
+stream_verilog turns a photon-stream-core-v1 circuit dictionary into one synchronous
+module: the fixed datapath (candidate register, subtractors, window flags, confidence
+counter) plus one combinational wire per learned gate. peak_verilog is the baseline
+that scans a stored histogram for its maximum (it excludes the histogram memory).
+Netlist reads a Yosys JSON gate netlist and simulates it with numpy so the generated
+hardware can be compared against spad.core.stream_model.simulate_stream.
+Used by spad.hardware.synth, timing, area_model and the ASAP7 flow scripts.
+"""
 import json
 
 import numpy as np
@@ -7,12 +16,24 @@ from spad.core.stream_model import ACTIONS, CONF_LEVELS, StreamConfig
 
 
 def _gate(name, a, b, table):
+    """Verilog `wire` for one gate: an OR of the (a, b) minterms whose table entry is 1.
+
+    table order is 00, 01, 10, 11. An all-zero table becomes the constant 1'b0.
+    """
     terms = [f"({'' if ia else '~'}{a} & {'' if ib else '~'}{b})"
              for bit, (ia, ib) in zip(table, ((0, 0), (0, 1), (1, 0), (1, 1))) if bit]
     return f"  wire {name} = {' | '.join(terms) if terms else chr(39).join(('1', 'b0'))};"
 
 
 def stream_verilog(circuit, module="photon_core"):
+    """Return Verilog text for a photon-stream-core-v1 circuit.
+
+    Ports: clk, rst, valid (a photon arrives this cycle), arrival [cand_bits-1:0]
+    (time bin, 750 ps each) and output candidate [cand_bits-1:0], the current range
+    estimate. One photon is consumed per clock when `valid` is high; rst clears
+    candidate, confidence and state. Matches simulate_stream: the up/down and inc/dec
+    updates saturate and cancel if both are set; replace wins over up/down.
+    """
     c = StreamConfig(**circuit["config"])
     names = circuit["inputs"]
     cb, qb = c.cand_bits, c.conf_bits
@@ -80,7 +101,12 @@ GATES = {"$_AND_": lambda a, b: a & b, "$_OR_": lambda a, b: a | b, "$_XOR_": la
 
 
 class Netlist:
-    """Vectorized simulator for a Yosys JSON gate netlist, for bit-exact checks."""
+    """Vectorized simulator for a Yosys JSON gate netlist, for bit-exact checks.
+
+    path: Yosys `write_json` output; module: top module name. Only the simple gate
+    cells in GATES plus $_NOT_, $_MUX_, $_BUF_ and $_DFF_P_ flip-flops are accepted.
+    Every ray is a numpy boolean lane, so a whole batch is simulated at once.
+    """
     def __init__(self, path, module):
         design = json.loads(path.read_text())["modules"][module]
         self.ports = {k: v["bits"] for k, v in design["ports"].items()}
@@ -96,6 +122,7 @@ class Netlist:
         self.comb = self._ordered()
 
     def _ordered(self):
+        """Topologically sort combinational cells so each runs after its inputs."""
         known = {q for _, q in self.flops} | {b for k, bits in self.ports.items() if k != "candidate" for b in bits}
         known |= {"0", "1", "x"}
         pending, ordered = self.comb, []

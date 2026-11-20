@@ -2,8 +2,16 @@
 
 Usage (from SPAD/):  python asic/draw_gates.py asic/results/<run>   [-o gates.svg]
 
-Reads <run>/6_final.v, converts it to JSON with Yosys and lays it out with netlistsvg
-(fetched with npx), using a skin generated here. Simple cells (INV, BUF, NAND2, OR3, XNOR2, ...)
+Requires Yosys (on PATH) and Node.js with npx (netlistsvg is fetched on first use).
+
+How it works:
+  1. Yosys reads <run>/6_final.v (the routed netlist from the OpenROAD flow) and writes JSON.
+  2. This script builds a netlistsvg "skin": one SVG template per ASAP7 cell type found in
+     the netlist. A template holds the drawing and the pin positions (<g s:pid=...>).
+  3. netlistsvg places and wires the cells using that skin and writes <run>/gates.svg.
+
+The templates are drawn here, not taken from netlistsvg, so that each ASAP7 cell shows the
+logic it implements. Simple cells (INV, BUF, NAND2, OR3, XNOR2, ...)
 get the standard symbol. Compound cells (AO/OA/AOI/OAI, half and full adders) are drawn as their
 internal gates inside a dashed outline that marks the boundary of the one standard cell.
 Tap, filler and decap cells are not in 6_final.v and are not drawn.
@@ -17,8 +25,11 @@ import tempfile
 
 PITCH = 10          # vertical distance between neighbouring gate inputs
 GATE_W = 30         # body width of AND/OR/XOR symbols
+# ASAP7 pin names that are outputs. Every other pin on a cell is treated as an input.
+# Y: normal output; Q/QN: flip-flop; CON/SN: adder carry/sum (inverted); H/L: TIEHI/TIELO.
 OUTPUT_PINS = {"Y", "Q", "QN", "CON", "SN", "H", "L"}
 
+# CSS added to netlistsvg's default skin.
 STYLE = """
 svg { background-color: #fff; }
 .cellbox { stroke: #9aa0a6; stroke-dasharray: 3,2; }
@@ -29,7 +40,11 @@ svg { background-color: #fff; }
 
 
 class Drawing:
-    """A cell template under construction: SVG elements plus pin positions."""
+    """A cell template under construction: SVG elements plus pin positions.
+
+    Coordinates are in SVG units with the origin at the cell's top-left corner.
+    Inputs sit on the left edge (x = 0) and outputs on the right edge.
+    """
 
     def __init__(self):
         self.parts, self.pins = [], []
@@ -45,11 +60,16 @@ class Drawing:
         self.parts.append(f'<circle cx="{x:g}" cy="{y:g}" r="1.6" class="dot"/>')
 
     def bubble(self, x, y):
+        """Draw an inversion bubble just right of (x, y); return the x where the wire resumes."""
         self.parts.append(f'<circle cx="{x + 3:g}" cy="{y:g}" r="3"/>')
         return x + 6
 
     def gate(self, kind, x, y, n, invert=False):
-        """Draw an n-input gate with top-left at (x, y); return (input points, output point)."""
+        """Draw an n-input gate with top-left at (x, y); return (input points, output point).
+
+        kind is "buf", "not", "and", "or" or "xor". invert adds a bubble on the output
+        (so and+invert is NAND, xor+invert is XNOR).
+        """
         h = max(2 * PITCH, n * PITCH)
         top = y + (h - PITCH * (n - 1)) / 2
         ys = [top + PITCH * i for i in range(n)]
@@ -79,6 +99,7 @@ class Drawing:
         return ins, out
 
     def pin(self, name, x, y, label=True):
+        """Register a connection point netlistsvg can attach wires to, with an optional text label."""
         self.pins.append((name, x, y))
         if label:
             anchor = "start" if x == 0 else "end"
@@ -87,6 +108,7 @@ class Drawing:
                               f'style="text-anchor:{anchor}">{name}</text>')
 
     def template(self, cell_type, width, height, box):
+        """Wrap the drawing as a netlistsvg skin entry for cell_type. box adds the dashed outline."""
         body = []
         if box:
             body.append(f'<rect x="0" y="-2" width="{width}" height="{height + 4}" class="cellbox"/>')
@@ -99,7 +121,11 @@ class Drawing:
 
 
 def route(d, nets, trunk_x):
-    """Connect each source point to its target points through its own vertical trunk."""
+    """Connect each source point to its target points through its own vertical trunk.
+
+    nets is a list of (source point, [target points]); trunk_x gives the x of each net's
+    vertical wire. Dots mark places where a wire branches.
+    """
     for (src, targets), tx in zip(nets, trunk_x):
         ys = [src[1]] + [t[1] for t in targets]
         d.line(src, (tx, src[1]))
@@ -112,6 +138,7 @@ def route(d, nets, trunk_x):
 
 
 def simple(cell_type, kind, pins, invert):
+    """One gate symbol with one input line per pin: INV, BUF, AND/NAND, OR/NOR, XOR/XNOR."""
     d = Drawing()
     n = len(pins)
     x0 = 6
@@ -243,10 +270,12 @@ def tie(cell_type, pin, value):
 
 
 def base_type(cell_type):
+    """Strip the drive-strength suffix: NAND2xp5 -> NAND2, INVx1 -> INV."""
     return re.sub(r"x[0-9p]+f?$", "", cell_type)
 
 
 def template_for(cell_type, pins):
+    """Pick the drawing for one ASAP7 cell type; pins are the pin names seen on it."""
     base = base_type(cell_type)
     inputs = sorted(p for p in pins if p not in OUTPUT_PINS)
     if base in ("INV", "BUF", "CKINVDC", "HB1", "HB2", "HB3", "HB4"):
@@ -275,6 +304,7 @@ def template_for(cell_type, pins):
 def default_skin():
     """netlistsvg's own skin (ports, splits, joins), from the npx cache."""
     subprocess.run(["npx", "--yes", "netlistsvg", "--help"], capture_output=True)
+    # "--help" is only there to make npx download netlistsvg into its cache.
     found = sorted(Path.home().glob(".npm/_npx/*/node_modules/netlistsvg/lib/default.svg"))
     if not found:
         raise SystemExit("netlistsvg not found; needs Node.js and npx")
@@ -286,12 +316,15 @@ def main():
     parser.add_argument("run", type=Path, help="results folder containing 6_final.v")
     parser.add_argument("-o", "--out", default="gates.svg", help="output name inside the run folder")
     args = parser.parse_args()
+    # All intermediate files live in a temporary folder; only the SVG is kept.
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         subprocess.run(["yosys", "-q", "-p", f"read_verilog {args.run.resolve()/'6_final.v'}; write_json {tmp/'raw.json'}"],
                        check=True)
         data = json.loads((tmp/"raw.json").read_text())
-        (top, module), = data["modules"].items()
+        (top, module), = data["modules"].items()  # the netlist has exactly one module
+        # Drop the library suffix so cell names match the templates, and tell netlistsvg
+        # which pins are outputs (Yosys cannot know that for cells it has no model of).
         pins = {}
         for cell in module["cells"].values():
             cell["type"] = cell["type"].replace("_ASAP7_75t_R", "")

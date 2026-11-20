@@ -1,7 +1,7 @@
 # Teaching a circuit to recognize 1011
 
 Can a computer discover a small circuit with memory just by seeing examples?
-This experiment uses [`sequential.py`](../sequential.py) to search for a circuit
+This experiment uses [`sequential.py`](sequential.py) to search for a circuit
 that recognizes the pattern **1011** in a stream of zeros and ones.
 
 The search receives example inputs and the correct answers. It is not given a
@@ -94,29 +94,28 @@ chart works offline. GitHub displays the HTML source rather than running it.
 | [`loss_vs_epoch.png`](loss_vs_epoch.png) | Training chart for quick viewing |
 | [`loss_vs_epoch.html`](loss_vs_epoch.html) | Interactive version of the training chart |
 | [`history.json`](history.json) | Saved settings, training scores, and final circuit designs |
-
-The program that produced these files is [`../sequential.py`](../sequential.py).
+| [`sequential.py`](sequential.py) | The program that produced these files |
 
 ## Running the experiment
 
 You need Python with PyTorch and Matplotlib installed. From the repository root:
 
 ```bash
-python basics/sequential.py --out basics/seq_detector_out
+python3 basics/sequence-detector/sequential.py
 ```
 
-This runs a new search and overwrites the generated results in this folder.
+This runs a new search and overwrites the generated results in this folder. Use `--out DIR` to write them somewhere else.
 Results can vary with the seed and computing environment.
 
 To redraw the circuit picture and interactive chart from the saved results,
 without training again:
 
 ```bash
-python basics/sequential.py --draw basics/seq_detector_out/history.json
+python3 basics/sequence-detector/sequential.py --draw basics/sequence-detector/history.json
 ```
 
 To see the available settings:
 
 ```bash
-python basics/sequential.py --help
+python3 basics/sequence-detector/sequential.py --help
 ```

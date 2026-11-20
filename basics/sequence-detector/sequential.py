@@ -7,6 +7,20 @@ Each gate node learns alpha (what gate it is) and beta_a / beta_b (what it reads
 Each D flip-flop learns delta (what it stores for the next clock), and gamma picks
 the signal that drives z. Two hardware costs join the loss: the expected area of
 the gates and flip-flops the output depends on, and the expected critical path.
+
+How it differs from the full adder search (../full-adder-discovery/DARTS4.py)
+  - The circuit is clocked. Each D flip-flop starts at 0, and its value for the
+    next clock is a softmax-weighted sum of all signals (delta). The soft circuit
+    is unrolled over the time steps of each training sequence.
+  - A gate is evaluated through its polynomial form c0 + c1*a + c2*b + c3*a*b, so
+    blending the gates means blending their four coefficients.
+  - At the end each choice is replaced by its argmax. `verify` then checks the
+    discrete circuit exhaustively against the pattern from reset, which covers
+    input streams of any length.
+
+Run (from the repository root):
+    python3 basics/sequence-detector/sequential.py
+Outputs go to this script's folder unless --out is given.
 """
 
 import torch
@@ -1288,7 +1302,7 @@ def main():
                         help="penalty per gate equivalent of live area")
     parser.add_argument("--delay-weight", type=float, default=0.01,
                         help="penalty per NAND delay on the critical path")
-    parser.add_argument("--out", default="seq_detector_out",
+    parser.add_argument("--out", default=os.path.dirname(os.path.abspath(__file__)),
                         help="folder for the plot, JSON and interactive report")
     parser.add_argument("--compare", default=None,
                         help="history.json of another run to compare against in the report")

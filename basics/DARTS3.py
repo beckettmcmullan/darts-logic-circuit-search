@@ -1,3 +1,28 @@
+"""A small DARTS cell: a graph of nodes joined by mixed edges.
+
+Structure
+  - The cell has 4 nodes. Node 0 is the input. Every node j > 0 is the sum of
+    one edge from each earlier node i < j (edges 0->1, 0->2, 1->2, 0->3, 1->3,
+    2->3). Only earlier nodes feed later ones, so the graph has no loops (a DAG).
+  - Each edge is a MixedEdge: it holds one copy of every candidate operation
+    (zero, identity, linear, small nonlinear net) and one score per operation.
+    The edge output is the softmax-weighted sum of all candidate outputs.
+
+Two kinds of parameters
+  - weight parameters: the weights inside each candidate operation;
+  - architecture parameters: the per-edge scores that pick the operation.
+  Here both are trained together by one Adam optimizer on the same loss. (The
+  original DARTS paper alternates them on separate data.)
+
+Discretization
+  After training, each edge keeps only its highest-scoring operation (argmax).
+  The script prints that choice per edge. It does not retrain or re-test the
+  discretized network.
+
+Task: fit y = x^2 + x on 32 points.
+
+Run: python3 basics/DARTS3.py
+"""
 import torch
 from torch import nn
 

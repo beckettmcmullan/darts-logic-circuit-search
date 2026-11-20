@@ -6,7 +6,9 @@ OpenROAD-flow-scripts (Docker image `openroad/orfs:latest`), run by `asic/run_fl
 For a step-by-step overview of how this circuit works, how it was trained and how it was
 chosen, see the [SPAD README](../../../README.md).
 
-Circuit: `runs/2026-11-10_kaggle-t4_batch3_fused-larger-search/random-s4-seed0`.
+Circuit: `runs/2026-11-10_kaggle-t4_batch3_fused-larger-search/random-s4-seed0` (training
+output, not tracked in git). The same circuit is saved in
+[`circuits/final/`](../../../circuits/README.md).
 Chosen because it combines near-best accuracy with the steadiest behaviour across photon
 counts. On identical validation photons (random 16-256 photons, extra ambient 0-0.6):
 0.363 m mean error, 0.151 m median, 76.2% within 34 cm, and an average offset between
@@ -48,8 +50,9 @@ area (110 vs 104 µm²) and a faster clock (682 vs 738 ps).
 ## Files
 
 `6_final.gds` (layout), `6_final.def` (placed and routed design, with net names),
-`6_final.v` (routed netlist), `6_final.sdc`, `6_finish.rpt` (timing, power, area),
-`5_route_drc.rpt` (empty: no DRC errors), `summary.json`, `final_*.webp` (layout, routing,
+`6_final.v` (routed netlist), `6_final.sdc`, `6_finish.rpt` (timing, power, area; setup slack is the margin by which the slowest path meets the clock,
+hold slack the margin against signals changing too soon after a clock edge),
+`5_route_drc.rpt` (empty: no design-rule check errors), `summary.json`, `final_*.webp` (layout, routing,
 placement, worst path, clock tree, congestion), `gates.svg` (schematic of all 381
 logic cells in `6_final.v` drawn with logic-gate symbols, clock-tree buffers included;
 compound cells such as OA21, AOI221 and the half/full adders are shown as their internal

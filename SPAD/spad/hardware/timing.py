@@ -28,6 +28,7 @@ SLEW_PS, LOAD_FF = 20., 1.44
 
 
 def _numbers(text):
+    """All numbers in a Liberty text fragment, as floats."""
     return [float(x) for x in re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", text)]
 
 
@@ -93,6 +94,7 @@ class Library:
 
 
 def mapped_netlist(verilog, module, data, period_ps=1000):
+    """Synthesize like synth.synthesize but return the mapped netlist (Yosys JSON) and the .lib paths."""
     libraries = {kind: next((data / "asap7").glob(f"*{kind}*.lib")) for kind in LIBRARIES}
     with tempfile.TemporaryDirectory() as name:
         folder = Path(name)
@@ -128,6 +130,7 @@ def critical_path(netlist, library):
 
     @lru_cache(maxsize=None)
     def arrival(bit):
+        # Memoized recursion over the netlist graph: arrival time of a net, in ps.
         if bit not in drivers:
             return 0.                             # input port: launched at the clock edge
         name, cell, info, out_pin = drivers[bit]
@@ -152,12 +155,17 @@ def critical_path(netlist, library):
 
 
 def analyse(circuit, data=ROOT / "data"):
+    """Static timing estimate of one circuit dictionary.
+
+    Returns {"critical_path_ps", "max_clock_mhz" (1e6 / path in ps), "endpoint"}.
+    """
     netlist, paths = mapped_netlist(stream_verilog(circuit), "photon_core", data)
     delay, endpoint = critical_path(netlist, Library(paths))
     return {"critical_path_ps": round(delay, 1), "max_clock_mhz": round(1e6 / delay, 0), "endpoint": endpoint}
 
 
 def main():
+    """CLI entry point: print the estimate for each circuit.json given."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("circuits", type=Path, nargs="+")
     parser.add_argument("--data", type=Path, default=ROOT / "data")

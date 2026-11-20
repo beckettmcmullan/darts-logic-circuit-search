@@ -9,6 +9,9 @@ A whole scene goes to one split, so no scene is in both training and evaluation.
 Each histogram map is decompressed from the zip, reduced to a ray sample and
 discarded, so the 67 MB text files never reach disk.
 
+Usage (from SPAD/, after prepare and calibration):  python -m spad.dataset.scenes [--scenes ...]
+Output: processed/{scene}-{view}.npz and labels_{scene}-{view}.npz, added to metadata.json.
+
 Pairing comes from each scene's sp_pose_results.csv (checked: each map aligns best
 with its own cloud, not its neighbours). Every view reports
 its median |histogram peak - label| on edge-free pixels; a view above
@@ -72,6 +75,15 @@ def view_pairs(archive, scene):
 
 
 def process_view(archive, hist_member, csv_member, calibration, transform, offset, args, seed):
+    """Label one view and sample rays from it.
+
+    calibration: the six refined intrinsics in NAMES order. transform/offset: the
+    SPL-to-Livox extrinsic and per-pixel range offsets from the dataset config.
+    args: needs bin_offset, max_range, rays_per_view. seed: sampling seed.
+    Returns ((payload, labels), info), or (None, info) when too few rays are labelled.
+    info["label_median_m"] is the median |histogram peak - label| in metres on
+    edge-free pixels; main() drops the view if it exceeds --max-label-error.
+    """
     hist = parse_histograms(archive.read(hist_member))
     with archive.open(csv_member) as handle:
         points = np.loadtxt(handle, delimiter=",", skiprows=1, usecols=(8, 9, 10))
@@ -103,6 +115,7 @@ def process_view(archive, hist_member, csv_member, calibration, transform, offse
 
 
 def main():
+    """CLI entry point: download each scene zip, label its views, update metadata."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--root", type=Path, default=ROOT / "data")
     parser.add_argument("--scenes", nargs="+", default=list(SCENES), choices=list(SCENES))
