@@ -1,4 +1,4 @@
-# neuralnetwork
+# training
 
 The Python package that designed this folder's circuit. It turns real SPAD
 recordings into photon streams, simulates the circuit on them exactly, and
@@ -145,17 +145,17 @@ The search barely moves the kept circuit. Scores on fresh photons are in
 Data (once, shared with `area-optimized/`):
 
 ```
-python -m neuralnetwork.dataset.download          # raw recordings + ASAP7 libraries
-python -m neuralnetwork.dataset.prepare           # labelled rays per recording
+python -m training.dataset.download          # raw recordings + ASAP7 libraries
+python -m training.dataset.prepare           # labelled rays per recording
 python -m asic.synthesis.costs                    # data/asap7/costs.json
-python -m neuralnetwork.dataset.calibration       # refit the lens, final labels
-python -m neuralnetwork.dataset.scenes            # optional: extra Reconstruction scenes
+python -m training.dataset.calibration       # refit the lens, final labels
+python -m training.dataset.scenes            # optional: extra Reconstruction scenes
 ```
 
 k4 (the winning job; GPU). It stops after 500 generations without improvement:
 
 ```
-python -m neuralnetwork.training.train_stream --out ../runs/k4 --device cuda \
+python -m training.training.train_stream --out ../runs/k4 --device cuda \
     --init rule --steps 0 --seed 4 \
     --frac-bits 3 --step-bits 2 --width 32 --state-bits 8 --conf-bits 5 --conf-levels 2 4 8 16 \
     --area-weight 0 --loss-delta 1 --loss-cap 8 --select capped --confirm-accept \
@@ -170,7 +170,7 @@ k4 + gate: embed k4 in a width-40 core with the gate. `--generations 0` skips
 the search, which gives the gates in `../circuit/circuit.json`.
 
 ```
-python -m neuralnetwork.training.train_stream --out ../runs/k4-gate --device cuda \
+python -m training.training.train_stream --out ../runs/k4-gate --device cuda \
     --init circuit --init-circuit ../runs/k4/circuit.json --embed --steps 0 --generations 0 \
     --frac-bits 3 --step-bits 2 --width 40 --state-bits 8 --conf-bits 5 --conf-levels 2 4 8 16 \
     --coincidence-depth 4 --coincidence-window 8
@@ -183,7 +183,7 @@ shifts each ray's photons and target by a random number of bins, so a circuit
 cannot learn where targets usually sit.
 
 ```
-python -m neuralnetwork.training.train_stream --out ../runs/gate-seed0 --device cuda \
+python -m training.training.train_stream --out ../runs/gate-seed0 --device cuda \
     --init circuit --init-circuit ../runs/k4/circuit.json --embed --steps 0 \
     --frac-bits 3 --step-bits 2 --width 40 --state-bits 8 --conf-bits 5 --conf-levels 2 4 8 16 \
     --coincidence-depth 4 --coincidence-window 8 \
@@ -196,4 +196,4 @@ two `--coincidence` flags.
 
 Each run writes `circuit.json`, `summary.json`, `history.jsonl` and `state.pt`
 under `--out`; `--max-seconds` and `--resume` stop and continue a run. Run
-`python -m neuralnetwork.training.train_stream --help` for every option.
+`python -m training.training.train_stream --help` for every option.

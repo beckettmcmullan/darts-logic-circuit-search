@@ -7,7 +7,7 @@ Two things live here.
    4-entry truth table. In training the routing is a softmax over sources and the
    truth table is four sigmoid probabilities, so the gate is a differentiable
    multilinear function (a DARTS-style relaxation). After hardening, each input
-   is one source (argmax) and each table entry is 0 or 1. neuralnetwork.core.stream_model
+   is one source (argmax) and each table entry is 0 or 1. training.core.stream_model
    builds the photon-stream core from this class.
 
 2. RecurrentLogic, Config and simulate_circuit. An earlier design that scans a

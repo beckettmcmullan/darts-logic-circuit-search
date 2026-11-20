@@ -5,14 +5,14 @@ module: the fixed datapath (candidate register, subtractors, window flags, confi
 counter) plus one combinational wire per learned gate. peak_verilog is the baseline
 that scans a stored histogram for its maximum (it excludes the histogram memory).
 Netlist reads a Yosys JSON gate netlist and simulates it with numpy so the generated
-hardware can be compared against neuralnetwork.core.stream_model.simulate_stream.
+hardware can be compared against training.core.stream_model.simulate_stream.
 Used by asic.synthesis.synth, timing, area_model and the ASAP7 flow scripts.
 """
 import json
 
 import numpy as np
 
-from neuralnetwork.core.stream_model import ACTIONS, CONF_LEVELS, StreamConfig
+from training.core.stream_model import ACTIONS, CONF_LEVELS, StreamConfig
 
 
 def _gate(name, a, b, table):

@@ -25,7 +25,7 @@ import tempfile
 import numpy as np
 
 from asic import ROOT
-from neuralnetwork.core.stream_model import ACTIONS, StreamConfig, window_units
+from training.core.stream_model import ACTIONS, StreamConfig, window_units
 from asic.synthesis.synth import LIBRARIES, yosys
 from asic.synthesis.verilog import stream_verilog
 

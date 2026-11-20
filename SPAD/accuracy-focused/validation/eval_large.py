@@ -22,12 +22,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from neuralnetwork import ROOT
-from neuralnetwork.core.stream_model import predict_bins
-from neuralnetwork.dataset.photons import photon_histogram, sample_conditions
-from neuralnetwork.dataset.prepare import BIN_METERS
-from neuralnetwork.training.baselines import box_peak, peak, subbin_fit
-from neuralnetwork.training.police import measure_pulse
+from training import ROOT
+from training.core.stream_model import predict_bins
+from training.dataset.photons import photon_histogram, sample_conditions
+from training.dataset.prepare import BIN_METERS
+from training.training.baselines import box_peak, peak, subbin_fit
+from training.training.police import measure_pulse
 
 DESIGN_SPLITS = ("validation", "architecture", "train")       # never scene_test, test or fresh_test
 MISS_BINS = 9.                                                  # about 1 m

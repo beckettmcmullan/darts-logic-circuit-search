@@ -5,7 +5,7 @@ recordings and compared with a full histogram given the same photons.
 
 **k4 + gate** is this folder's circuit, [`../circuit/circuit.json`](../circuit/circuit.json).
 k4 is its learned controller, found by the search in
-[`../neuralnetwork/`](../neuralnetwork/README.md) and named after the search
+[`../training/`](../training/README.md) and named after the search
 batch that found it. The gate is fixed logic that stops the range guess from
 jumping to a lone far photon. **k4** on its own means the same controller
 without the gate.
@@ -65,7 +65,7 @@ estimator, which slightly favours the histogram.
 | Column | Meaning |
 |---|---|
 | `seed` | 0-19 |
-| `coincidence_gate` | `yes` = searched from k4 + gate, `no` = from k4. In `../neuralnetwork/search_history.csv` these are the batches `k4 + gate search` and `k4 re-search (no gate)`. |
+| `coincidence_gate` | `yes` = searched from k4 + gate, `no` = from k4. In `../training/search_history.csv` these are the batches `k4 + gate search` and `k4 re-search (no gate)`. |
 | `batch` | the GPU batch the job ran in: `c1-gate-seeds-0-9` (seeds 0-9) or `c2-gate-seeds-10-19` (seeds 10-19). Each batch ran both the `yes` and `no` jobs of its seeds. |
 | `generations` | where the search stopped; these jobs stop after 300 generations without improvement |
 | `controller_changed` | whether the kept circuit's gates differ from the start |
@@ -148,7 +148,7 @@ and the gain comes from the gate.
 ## Running
 
 From `SPAD/accuracy-focused/`, after the data steps in
-[`../neuralnetwork/README.md`](../neuralnetwork/README.md). k4 on its own is
+[`../training/README.md`](../training/README.md). k4 on its own is
 not stored in the repo. Pass any circuit as `name=path/to/circuit.json`.
 
 Benchmark (CPU). `--references` scores k4 + gate and the area-optimized circuit;

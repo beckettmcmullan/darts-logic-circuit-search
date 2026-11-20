@@ -9,7 +9,7 @@ A whole scene goes to one split, so no scene is in both training and evaluation.
 Each histogram map is decompressed from the zip, reduced to a ray sample and
 discarded, so the 67 MB text files never reach disk.
 
-Usage (from SPAD/accuracy-focused/, after prepare and calibration):  python -m neuralnetwork.dataset.scenes [--scenes ...]
+Usage (from SPAD/accuracy-focused/, after prepare and calibration):  python -m training.dataset.scenes [--scenes ...]
 Output: processed/{scene}-{view}.npz and labels_{scene}-{view}.npz, added to metadata.json.
 
 Pairing comes from each scene's sp_pose_results.csv (checked: each map aligns best
@@ -27,10 +27,10 @@ import zipfile
 
 import numpy as np
 
-from neuralnetwork import ROOT
-from neuralnetwork.dataset.calibration import NAMES, edge_free, project
-from neuralnetwork.dataset.download import DATASET, HF, fetch, get_json, usage
-from neuralnetwork.dataset.prepare import BIN_METERS
+from training import ROOT
+from training.dataset.calibration import NAMES, edge_free, project
+from training.dataset.download import DATASET, HF, fetch, get_json, usage
+from training.dataset.prepare import BIN_METERS
 
 # Scene -> split. parking (outdoor) is a held-out scene: never used for design decisions.
 # AI_floor2 is excluded: its Livox labels are spatially misaligned under the frozen

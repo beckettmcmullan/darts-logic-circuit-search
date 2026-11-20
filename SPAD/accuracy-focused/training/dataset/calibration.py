@@ -16,7 +16,7 @@ processed/calibration_report.json. The search is coordinate descent: for each of
 step scales, move each parameter up or down while the mean over training captures of
 the median peak-to-label error (metres) keeps falling.
 
-Usage (from SPAD/accuracy-focused/):  python -m neuralnetwork.dataset.calibration [--root DIR]
+Usage (from SPAD/accuracy-focused/):  python -m training.dataset.calibration [--root DIR]
 """
 import argparse
 import json
@@ -24,8 +24,8 @@ from pathlib import Path
 
 import numpy as np
 
-from neuralnetwork import ROOT
-from neuralnetwork.dataset.prepare import BIN_METERS, load_intrinsics, project_ranges
+from training import ROOT
+from training.dataset.prepare import BIN_METERS, load_intrinsics, project_ranges
 
 WIDTH, HEIGHT = 256, 192
 NAMES = ("fx", "fy", "cx", "cy", "k1", "k2")

@@ -1,4 +1,4 @@
-# The `neuralnetwork` package
+# The `training` package
 
 Python code that trains a learned per-pixel range circuit for single-photon (SPAD) lidar:
 the dataset, the gate-network model and its simulators, and the training.
@@ -8,7 +8,7 @@ one running range estimate per pixel and updates it as each photon arrives. No
 histogram is stored.
 
 Units: one time bin is 750 ps, which is about 0.1124 m of range
-(`neuralnetwork.dataset.prepare.BIN_METERS`). A histogram has 672 bins. Ranges are stored as
+(`training.dataset.prepare.BIN_METERS`). A histogram has 672 bins. Ranges are stored as
 bin indices and reported in metres.
 
 All commands below run from `SPAD/area-optimized/` (the parent of this folder), which is the
@@ -52,7 +52,7 @@ is padding and changes nothing.
 
 The hardware code (Verilog export, Yosys/ASAP7 synthesis, timing, the area model and
 the circuit diagrams) is the `asic.synthesis` package in [`../asic/synthesis/`](../asic/synthesis/README.md).
-It imports `neuralnetwork.core` to check the hardware against the Python simulator, and the
+It imports `training.core` to check the hardware against the Python simulator, and the
 area objective in `train_stream.py` imports its area model.
 
 ## Data flow
@@ -166,13 +166,13 @@ Run each as a module from `SPAD/area-optimized/`:
 
 | Command | What it does |
 |---|---|
-| `python -m neuralnetwork.dataset.download [--root DIR] [--budget-bytes N]` | Fetch the pinned data subset. |
-| `python -m neuralnetwork.dataset.prepare [--captures N ...] [--max-rays N] [--seed N]` | Project labels and sample rays. |
+| `python -m training.dataset.download [--root DIR] [--budget-bytes N]` | Fetch the pinned data subset. |
+| `python -m training.dataset.prepare [--captures N ...] [--max-rays N] [--seed N]` | Project labels and sample rays. |
 | `python -m asic.synthesis.costs [--root DIR]` | Build `data/asap7/costs.json` (needs the downloaded ASAP7 libraries). |
-| `python -m neuralnetwork.dataset.calibration [--root DIR]` | Refine intrinsics, write labels. |
-| `python -m neuralnetwork.dataset.scenes [--scenes ...] [--rays-per-view N]` | Add Reconstruction scenes. |
-| `python -m neuralnetwork.training.baselines [--cnn-seconds S] [--out DIR]` | Reference methods; writes `design_metrics.json`. |
-| `python -m neuralnetwork.training.train_stream --out runs/NAME [options]` | Train a circuit (below). |
+| `python -m training.dataset.calibration [--root DIR]` | Refine intrinsics, write labels. |
+| `python -m training.dataset.scenes [--scenes ...] [--rays-per-view N]` | Add Reconstruction scenes. |
+| `python -m training.training.baselines [--cnn-seconds S] [--out DIR]` | Reference methods; writes `design_metrics.json`. |
+| `python -m training.training.train_stream --out runs/NAME [options]` | Train a circuit (below). |
 | `python -m asic.synthesis.synth runs/NAME/circuit.json ...` | Verify and synthesize circuits plus the rule baseline. |
 | `python -m asic.synthesis.timing runs/NAME/circuit.json ...` | Critical-path estimate. |
 | `python -m asic.synthesis.area_model --circuits 400` | Refit `area_model.json` (slow: runs Yosys). |
@@ -198,8 +198,8 @@ Run each as a module from `SPAD/area-optimized/`:
 Example:
 
 ```
-python -m neuralnetwork.training.train_stream --out runs/my-run --device cuda
-python -m neuralnetwork.training.train_stream --out runs/my-area-run --objective area \
+python -m training.training.train_stream --out runs/my-run --device cuda
+python -m training.training.train_stream --out runs/my-area-run --objective area \
     --init circuit --init-circuit runs/my-run/circuit.json
 python -m asic.synthesis.synth runs/my-area-run/circuit.json
 ```

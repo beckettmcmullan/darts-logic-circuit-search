@@ -1,6 +1,6 @@
 """ASAP7 Liberty-derived search proxies, not synthesis or signoff timing.
 
-Reads the ASAP7 Liberty (.lib) cell libraries downloaded by neuralnetwork.dataset.download and
+Reads the ASAP7 Liberty (.lib) cell libraries downloaded by training.dataset.download and
 builds data/asap7/costs.json: for each of the 16 possible two-input truth tables, the
 area and delay of the cheapest ASAP7 cell combination that implements it (for example
 a NAND cell for code 7, or an inverter plus an AND cell for "a and not b"). Pass-throughs
@@ -21,7 +21,7 @@ import subprocess
 import torch
 
 from asic import ROOT
-from neuralnetwork.dataset.download import usage
+from training.dataset.download import usage
 
 
 def groups(text, kind):

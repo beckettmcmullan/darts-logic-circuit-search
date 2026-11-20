@@ -6,8 +6,8 @@ config files, and the ASAP7 Liberty cell libraries from GitHub. Revisions are pi
 in data/manifest.json (with a SHA-256 for each file) and total size is capped by
 --budget-bytes. Output goes under --root (default SPAD/data): raw/, asap7/, manifest.json.
 
-Usage (from SPAD/accuracy-focused/):  python -m neuralnetwork.dataset.download [--root DIR] [--budget-bytes N]
-Next step: neuralnetwork.dataset.prepare.
+Usage (from SPAD/area-optimized/):  python -m training.dataset.download [--root DIR] [--budget-bytes N]
+Next step: training.dataset.prepare.
 """
 import argparse
 import hashlib
@@ -16,7 +16,7 @@ from pathlib import Path
 import urllib.parse
 import urllib.request
 
-from neuralnetwork import ROOT
+from training import ROOT
 HF = "https://huggingface.co"
 DATASET = "shuinb/SP-TransientBench"
 ASAP = "The-OpenROAD-Project/asap7sc7p5t_28"

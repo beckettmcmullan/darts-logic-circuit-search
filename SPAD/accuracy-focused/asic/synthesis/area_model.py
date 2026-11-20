@@ -23,7 +23,7 @@ import random
 import torch
 
 from asic import ROOT
-from neuralnetwork.core.stream_model import ACTIONS, StreamConfig, input_names, pack_circuit, unpack_circuit
+from training.core.stream_model import ACTIONS, StreamConfig, input_names, pack_circuit, unpack_circuit
 
 MODEL_PATH = Path(__file__).with_name("area_model.json")
 CONFIDENCE_FLAGS = ("zero", "conf2", "conf4", "conf8", "full")
@@ -121,7 +121,7 @@ def activity(config, inputs, codes, photons):
     flag, state bit or gate output takes both values on some valid photon. A signal stuck
     at one value is a constant to synthesis, which deletes the logic behind it.
     """
-    from neuralnetwork.core.stream_model import CONF_LEVELS
+    from training.core.stream_model import CONF_LEVELS
     c = config
     members, rays = len(inputs), len(photons)
     device = photons.device
@@ -203,7 +203,7 @@ def degenerate(circuit, rays=512, seed=0):
 
     Such a circuit does not measure anything. (Note the name: True means "degenerate".)
     """
-    from neuralnetwork.core.stream_model import simulate_stream
+    from training.core.stream_model import simulate_stream
     g = torch.Generator().manual_seed(seed)
     centre = torch.randint(0, 672, (rays, 1), generator=g)
     photons = (centre + torch.randint(-12, 13, (rays, 64), generator=g)).clamp(0, 671)

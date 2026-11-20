@@ -20,10 +20,10 @@ Main training entry point. Two phases, run in order:
    circuit. Defaults are --generations 1000 and --population 128.
 
 Training samples are generated fresh at every step from the recorded histograms (see
-neuralnetwork.dataset.photons.sample_conditions). Run from SPAD/area-optimized/ with
-  python -m neuralnetwork.training.train_stream --out runs/NAME [--device cuda] [options]
+training.dataset.photons.sample_conditions). Run from SPAD/area-optimized/ with
+  python -m training.training.train_stream --out runs/NAME [--device cuda] [options]
 It writes circuit.json (the final circuit), summary.json, history.jsonl and state.pt
-under --out. Pass --help for every option. Needs data/ from neuralnetwork.dataset.* and
+under --out. Pass --help for every option. Needs data/ from training.dataset.* and
 data/asap7/costs.json from asic.synthesis.costs.
 
 Truth tables train on the train split and routing on the architecture split.
@@ -53,12 +53,12 @@ import time
 
 import torch
 
-from neuralnetwork.training.baselines import metrics
-from neuralnetwork import ROOT
-from neuralnetwork.dataset.photons import load_rays, sample_conditions
-from neuralnetwork.training.police import Police, measure_pulse
+from training.training.baselines import metrics
+from training import ROOT
+from training.dataset.photons import load_rays, sample_conditions
+from training.training.police import Police, measure_pulse
 from asic.synthesis.area_model import MODEL_PATH, AreaModel
-from neuralnetwork.core.stream_model import (StreamConfig, StreamCore, input_names, pack_circuit, rule_circuit,
+from training.core.stream_model import (StreamConfig, StreamCore, input_names, pack_circuit, rule_circuit,
                           set_search_compile, simulate_population_packed, simulate_stream, unpack_circuit)
 
 

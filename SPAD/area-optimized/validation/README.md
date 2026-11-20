@@ -67,7 +67,7 @@ of 8 neighbouring bins, and the sub-bin fit reads the peak between bins.
 many rays they disagree with the SPAD pixel's own data. The dataset step marks
 a ray *clean* when the reference distances of its neighbouring pixels agree
 within 0.3 m, so it is not on an object edge
-([`calibration.py`](../neuralnetwork/dataset/calibration.py), `edge_free`).
+([`calibration.py`](../training/dataset/calibration.py), `edge_free`).
 Even so, a sub-bin fit of every recorded photon is more than 9 bins (about 1 m)
 off the reference distance on 0.8% of clean validation rays, 7.9% of clean
 design rays and over 40% of the other rays. So v3 and v4 keep only *trusted*

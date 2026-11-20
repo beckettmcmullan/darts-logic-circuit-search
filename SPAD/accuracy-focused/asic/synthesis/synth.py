@@ -2,12 +2,12 @@
 
 Takes trained circuit.json files (and the hand-written rule circuit), generates
 Verilog with asic.synthesis.verilog, checks the elaborated gate netlist against the
-Python integer simulator (neuralnetwork.core.stream_model.simulate_stream), then maps it to
+Python integer simulator (training.core.stream_model.simulate_stream), then maps it to
 ASAP7 cells and reports area. ASAP7 is a predictive library (not a manufacturable
 process), so areas are comparative estimates. Area is whatever unit the Liberty
 files use (area_model.py labels it um^2).
 
-Needs the yowasp-yosys package and the ASAP7 .lib files from neuralnetwork.dataset.download.
+Needs the yowasp-yosys package and the ASAP7 .lib files from training.dataset.download.
 
 Usage (from SPAD/accuracy-focused/):  python -m asic.synthesis.synth runs/<run>/circuit.json [...] [--data DIR] [--out FILE]
 """
@@ -24,7 +24,7 @@ import numpy as np
 import torch
 
 from asic import ROOT
-from neuralnetwork.core.stream_model import rule_circuit, simulate_stream
+from training.core.stream_model import rule_circuit, simulate_stream
 from asic.synthesis.verilog import Netlist, peak_verilog, stream_verilog
 
 YOSYS = str(Path(sys.executable).parent/"yowasp-yosys")
@@ -68,7 +68,7 @@ def verify(verilog, module, circuit, rays=4000, seed=3):
 def synthesize(verilog, module, data, period_ps=1000):
     """Map Verilog to ASAP7 cells with Yosys + ABC and return its area.
 
-    data: folder holding asap7/*.lib (from neuralnetwork.dataset.download). period_ps is the
+    data: folder holding asap7/*.lib (from training.dataset.download). period_ps is the
     ABC delay target (1000 ps). Returns {"area", "cells", "flops", "report"}; area
     is None if no area line was found. The libraries in LIBRARIES (SIMPLE, INVBUF,
     SEQ) are the combinational, inverter/buffer and flip-flop cells.

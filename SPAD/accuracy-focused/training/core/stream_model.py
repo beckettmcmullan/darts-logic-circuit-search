@@ -81,7 +81,7 @@ from dataclasses import asdict, dataclass
 import torch
 from torch import nn
 
-from neuralnetwork.core.model import GateLayer, light_gate
+from training.core.model import GateLayer, light_gate
 
 ACTIONS = ("replace", "up", "down", "inc", "dec")
 RIVAL_TRACKS = ("off", "step", "half")

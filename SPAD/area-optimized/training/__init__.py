@@ -7,7 +7,7 @@ asic.synthesis package in ../asic/synthesis/. See README.md in this folder for t
 data flow and the command line entry points.
 
 Time bins are 750 ps wide. One bin is about 0.1124 m of range
-(see neuralnetwork.dataset.prepare.BIN_METERS).
+(see training.dataset.prepare.BIN_METERS).
 """
 from pathlib import Path
 

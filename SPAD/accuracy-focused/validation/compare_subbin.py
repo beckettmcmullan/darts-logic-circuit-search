@@ -18,13 +18,13 @@ from pathlib import Path
 
 import torch
 
-from neuralnetwork import ROOT
-from neuralnetwork.core.stream_model import predict_bins
-from neuralnetwork.dataset.photons import load_rays, photon_histogram, sample_conditions, sample_photons
-from neuralnetwork.dataset.prepare import BIN_METERS
-from neuralnetwork.training.baselines import box_peak, metrics, peak, subbin_fit
-from neuralnetwork.training.police import Police, measure_pulse
-from neuralnetwork.training.train_stream import Validator
+from training import ROOT
+from training.core.stream_model import predict_bins
+from training.dataset.photons import load_rays, photon_histogram, sample_conditions, sample_photons
+from training.dataset.prepare import BIN_METERS
+from training.training.baselines import box_peak, metrics, peak, subbin_fit
+from training.training.police import Police, measure_pulse
+from training.training.train_stream import Validator
 
 
 def detail(prediction, targets):

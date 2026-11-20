@@ -109,7 +109,7 @@ The final answer is bin 107.0 against a reference of 106.93: 0.8 cm off.
 
 ## 4. How it was found
 
-![Search runs that found k4, and runs that searched again from it](neuralnetwork/accuracy_vs_generations.png)
+![Search runs that found k4, and runs that searched again from it](training/accuracy_vs_generations.png)
 
 **Finding k4 (left).** Ten search jobs ran together on Kaggle (2 Tesla T4
 GPUs, about 100 minutes in all): 2 starting points × 5 seeds. One start was
@@ -243,7 +243,7 @@ the 1.5 ns clock: 20% (300 ps) is reserved for logic outside the core.
 | [`asic/`](asic/README.md) | Verilog, synthesis, the OpenROAD flow and the routed layout |
 | [`circuit/`](circuit/README.md) | The final circuit: `circuit.json`, equations, gate diagrams, the flags figure |
 | [`validation/`](validation/README.md) | Benchmark, seed comparison and large-run scores behind the numbers above |
-| [`neuralnetwork/`](neuralnetwork/README.md) | The circuit model, exact simulators, dataset code and the search |
+| [`training/`](training/README.md) | The circuit model, exact simulators, dataset code and the search |
 
 ## Running it
 
@@ -251,11 +251,11 @@ Run everything from `SPAD/accuracy-focused/` with the packages in
 [`../requirements.txt`](../requirements.txt). Prepare the data once:
 
 ```bash
-python -m neuralnetwork.dataset.download     # fetch SP-TransientBench into ../data/
-python -m neuralnetwork.dataset.prepare      # prepare the photon data
+python -m training.dataset.download     # fetch SP-TransientBench into ../data/
+python -m training.dataset.prepare      # prepare the photon data
 python -m asic.synthesis.costs               # read ASAP7 cell sizes and delays
-python -m neuralnetwork.dataset.calibration  # refine the reference distances
-python -m neuralnetwork.dataset.scenes       # optional: add the larger scenes
+python -m training.dataset.calibration  # refine the reference distances
+python -m training.dataset.scenes       # optional: add the larger scenes
 ```
 
 Score the circuit, synthesize it, and lay it out:
@@ -276,6 +276,6 @@ asic/run_flow.sh
   as `asic/run_flow.sh synth` runs only that step.
 
 The exact search commands for k4 and the gate are in
-[`neuralnetwork/README.md`](neuralnetwork/README.md).
+[`training/README.md`](training/README.md).
 
 For the smaller circuit, see [`../area-optimized/README.md`](../area-optimized/README.md).

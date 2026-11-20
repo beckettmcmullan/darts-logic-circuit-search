@@ -40,13 +40,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from neuralnetwork import ROOT
-from neuralnetwork.core.stream_model import predict_bins
-from neuralnetwork.dataset.photons import photon_histogram, sample_conditions
-from neuralnetwork.dataset.prepare import BIN_METERS
+from training import ROOT
+from training.core.stream_model import predict_bins
+from training.dataset.photons import photon_histogram, sample_conditions
+from training.dataset.prepare import BIN_METERS
 from validation.eval_large import MISS_BINS, SHIFT, load_split, moved
-from neuralnetwork.training.baselines import peak, subbin_fit
-from neuralnetwork.training.police import measure_pulse
+from training.training.baselines import peak, subbin_fit
+from training.training.police import measure_pulse
 
 NAME = "lowphoton-v1"
 REFERENCE = "histogram, sub-bin fit"

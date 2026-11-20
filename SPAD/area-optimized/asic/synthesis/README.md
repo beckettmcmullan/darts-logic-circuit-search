@@ -10,10 +10,10 @@ Run everything from `SPAD/area-optimized/`, as modules (`python -m asic.synthesi
 | Module | What it does |
 |---|---|
 | `verilog.py` | `stream_verilog(circuit)` writes the synchronous module `photon_core` (ports `clk`, `rst`, `valid`, `arrival`, `candidate`): the fixed comparator and counters plus one combinational wire per learned gate. Also simulates a Yosys netlist in numpy. |
-| `synth.py` | Checks that the netlist matches `neuralnetwork.core.stream_model.simulate_stream` bit for bit, then maps it with Yosys and ABC to ASAP7 cells and reports area. |
+| `synth.py` | Checks that the netlist matches `training.core.stream_model.simulate_stream` bit for bit, then maps it with Yosys and ABC to ASAP7 cells and reports area. |
 | `timing.py` | Reads the mapped netlist and the Liberty tables and returns a critical-path estimate without wires or placement. |
 | `costs.py` | Builds `data/asap7/costs.json`, the area and delay of every two-input truth table. |
-| `area_model.py`, `area_model.json` | A linear whole-core area estimate fitted to Yosys results. The area objective in `neuralnetwork/training/train_stream.py` uses it. |
+| `area_model.py`, `area_model.json` | A linear whole-core area estimate fitted to Yosys results. The area objective in `training/training/train_stream.py` uses it. |
 | `diagram.py` | Draws the learned controller (`controller.svg`) and writes its minimized Boolean equations (`equations.txt`). Optionally also writes whole-core netlists in generic gates and in ASAP7 cells. |
 
 ASAP7 is a predictive process design kit: the numbers are comparative estimates, not
@@ -23,7 +23,7 @@ directly, and `area_model.py` is a regression on Yosys results.
 ## Commands
 
 ```bash
-python -m asic.synthesis.costs                                  # needs data/asap7 from neuralnetwork.dataset.download
+python -m asic.synthesis.costs                                  # needs data/asap7 from training.dataset.download
 python -m asic.synthesis.synth runs/NAME/circuit.json           # verify and synthesize
 python -m asic.synthesis.timing runs/NAME/circuit.json          # critical-path estimate
 python -m asic.synthesis.area_model --circuits 400              # refit area_model.json (slow: runs Yosys)

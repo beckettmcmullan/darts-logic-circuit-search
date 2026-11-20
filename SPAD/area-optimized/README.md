@@ -289,10 +289,10 @@ data it was scored on.
 
 | Folder or file | Purpose |
 |---|---|
-| [`neuralnetwork/`](neuralnetwork/README.md) | The Python package that learns the circuit. Its README maps the package and how data moves through it. |
-| [`neuralnetwork/dataset/`](neuralnetwork/dataset/) | Downloads SP-TransientBench, prepares the photon data and reference distances |
-| [`neuralnetwork/core/`](neuralnetwork/core/) | The circuit model and its exact simulators |
-| [`neuralnetwork/training/`](neuralnetwork/training/) | The search, the physics check and the comparison methods |
+| [`training/`](training/README.md) | The Python package that learns the circuit. Its README maps the package and how data moves through it. |
+| [`training/dataset/`](training/dataset/) | Downloads SP-TransientBench, prepares the photon data and reference distances |
+| [`training/core/`](training/core/) | The circuit model and its exact simulators |
+| [`training/training/`](training/training/) | The search, the physics check and the comparison methods |
 | [`circuit/`](circuit/README.md) | The final circuit: `circuit.json`, Verilog, Boolean equations and gate diagrams (`controller.svg` for the learned logic, `gates.svg` for every cell of the layout), plus the smaller area-optimized variant as `area-optimized.json` |
 | [`asic/`](asic/README.md) | Everything hardware: synthesis, the OpenROAD layout flow and the routed layout |
 | [`asic/synthesis/`](asic/synthesis/README.md) | Verilog export, Yosys/ASAP7 synthesis, timing, the area estimate and the diagram script |
@@ -309,18 +309,18 @@ Run everything from this `SPAD/area-optimized/` folder. The first command downlo
 dataset into `SPAD/data/`; the others read and extend it:
 
 ```bash
-python -m neuralnetwork.dataset.download     # fetch SP-TransientBench
-python -m neuralnetwork.dataset.prepare      # prepare the photon data
+python -m training.dataset.download     # fetch SP-TransientBench
+python -m training.dataset.prepare      # prepare the photon data
 python -m asic.synthesis.costs               # read ASAP7 cell sizes and delays
-python -m neuralnetwork.dataset.calibration  # refine the reference distances
-python -m neuralnetwork.dataset.scenes       # add the larger scenes
+python -m training.dataset.calibration  # refine the reference distances
+python -m training.dataset.scenes       # add the larger scenes
 ```
 
 To train and shrink a circuit, then check its real area:
 
 ```bash
-python -m neuralnetwork.training.train_stream --help
-python -m neuralnetwork.training.train_stream --objective area --init circuit \
+python -m training.training.train_stream --help
+python -m training.training.train_stream --objective area --init circuit \
   --init-circuit circuit/circuit.json --steps 0 --out runs/my-area-run
 python -m asic.synthesis.synth runs/my-area-run/circuit.json
 ```

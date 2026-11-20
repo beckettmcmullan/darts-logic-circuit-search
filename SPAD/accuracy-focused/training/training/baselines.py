@@ -3,13 +3,13 @@
 These are the comparison points for the learned circuit: histogram argmax ("peak"),
 a width-8 box filter then argmax ("box8"), a peak with a bias table keyed on the peak
 height ("lut"), a small 1-D CNN over the histogram, and the hand-written streaming
-rules from neuralnetwork.core.stream_model.rule_circuit. Each is scored on a full histogram and
-on photon budgets of 16-256 photons drawn with neuralnetwork.dataset.photons. Offsets and the
+rules from training.core.stream_model.rule_circuit. Each is scored on a full histogram and
+on photon budgets of 16-256 photons drawn with training.dataset.photons. Offsets and the
 CNN are fitted on the train split only; results on the architecture and validation
 splits are written to design_metrics.json. Distances are reported in metres
 (1 bin = 750 ps = about 0.1124 m).
 
-Usage (from SPAD/area-optimized/):  python -m neuralnetwork.training.baselines [--data DIR] [--out DIR]
+Usage (from SPAD/accuracy-focused/):  python -m training.training.baselines [--data DIR] [--out DIR]
                          [--cnn-seconds S] [--cnn-budgets N ...] [--threads N]
 """
 import argparse
@@ -21,10 +21,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from neuralnetwork import ROOT
-from neuralnetwork.dataset.photons import load_rays, photon_histogram, sample_photons
-from neuralnetwork.dataset.prepare import BIN_METERS
-from neuralnetwork.core.stream_model import StreamConfig, rule_circuit, simulate_stream
+from training import ROOT
+from training.dataset.photons import load_rays, photon_histogram, sample_photons
+from training.dataset.prepare import BIN_METERS
+from training.core.stream_model import StreamConfig, rule_circuit, simulate_stream
+from training.training.police import measure_pulse
 
 BUDGETS = (16, 32, 64, 128, 256)
 
@@ -55,6 +56,23 @@ def box_peak(histograms, width):
 def peak(histograms):
     """Argmax bin of each histogram; float [rays]."""
     return histograms.argmax(-1).float()
+
+
+def subbin_fit(histograms, pulse, zero, half=6):
+    """Sub-bin range from a histogram: matched filter, then a centroid around its peak.
+
+    The histogram is correlated with the measured return shape (pulse[k] sits at offset
+    k - zero from the pulse peak) and the best whole bin is refined to the centroid of
+    the background-subtracted counts within `half` bins of it. Returns fractional bins.
+    """
+    counts = histograms.float()
+    k = len(pulse)
+    padded = nn.functional.pad(counts, (zero, k - zero - 1))
+    best = nn.functional.conv1d(padded[:, None], pulse.to(counts)[None, None])[:, 0].argmax(-1)
+    bins = (best[:, None] + torch.arange(-half, half + 1, device=counts.device)[None]).clamp(0, counts.shape[1] - 1)
+    weight = (counts.gather(1, bins) - counts.median(1, keepdim=True).values).clamp_min(0)
+    total = weight.sum(1)
+    return torch.where(total > 0, (weight * bins).sum(1) / total.clamp_min(1e-9), best.float())
 
 
 def lut_index(histograms):
@@ -117,6 +135,10 @@ def evaluate_methods(fitted, cnns, histograms, targets, clean, seed=1):
         results[name] = scored(prediction - offset, targets, clean)
     add("peak_full", peak(histograms), fitted["offset"]["peak_full"])
     add("box8_full", box_peak(histograms, 8), fitted["offset"]["box8_full"])
+    # Sub-bin fit of the histogram, whenever the fitted file carries the measured pulse.
+    pulse = torch.tensor(fitted["pulse"]) if "pulse" in fitted else None
+    if pulse is not None:
+        add("subbin_full", subbin_fit(histograms, pulse, fitted["pulse_zero"]), fitted["offset"]["subbin_full"])
     table = torch.tensor(fitted["lut"])
     add("peak_lut_full", peak(histograms) - table[lut_index(histograms)], 0.)
     if "cnn_full" in cnns:
@@ -127,6 +149,8 @@ def evaluate_methods(fitted, cnns, histograms, targets, clean, seed=1):
         small = photon_histogram(photons)
         add(f"peak_{budget}", peak(small), fitted["offset"][f"peak_{budget}"])
         add(f"box8_{budget}", box_peak(small, 8), fitted["offset"][f"box8_{budget}"])
+        if pulse is not None:
+            add(f"subbin_{budget}", subbin_fit(small, pulse, fitted["pulse_zero"]), fitted["offset"][f"subbin_{budget}"])
         if f"cnn_{budget}" in cnns:
             add(f"cnn_{budget}", cnns[f"cnn_{budget}"].predict(small), 0.)
         for window in StreamConfig().windows:
@@ -151,19 +175,22 @@ def main():
     fit_h, fit_t = histograms[fit], targets[fit]
     generator = torch.Generator().manual_seed(0)
     median = lambda prediction: float((prediction - fit_t).median())
-    offset = {"peak_full": median(peak(fit_h)), "box8_full": median(box_peak(fit_h, 8))}
+    pulse, zero = measure_pulse(histograms)       # label-free return shape, from training histograms
+    offset = {"peak_full": median(peak(fit_h)), "box8_full": median(box_peak(fit_h, 8)),
+              "subbin_full": median(subbin_fit(fit_h, pulse, zero))}
     for budget in BUDGETS:
         photons = sample_photons(fit_h, budget, generator)
         small = photon_histogram(photons)
         offset[f"peak_{budget}"] = median(peak(small))
         offset[f"box8_{budget}"] = median(box_peak(small, 8))
+        offset[f"subbin_{budget}"] = median(subbin_fit(small, pulse, zero))
         for window in StreamConfig().windows:
             offset[f"rule{window}_{budget}"] = median(simulate_stream(rule_circuit(window=window), photons).float())
     index = lut_index(histograms)
     residual = peak(histograms) - targets
     overall = float(residual.median())
     lut = [float(residual[index == i].median()) if (index == i).sum() >= 50 else overall for i in range(int(index.max())+2+24)]
-    fitted = {"offset": offset, "lut": lut}
+    fitted = {"offset": offset, "lut": lut, "pulse": pulse.tolist(), "pulse_zero": zero}
     (args.out/"fitted.json").write_text(json.dumps(fitted, indent=2)+"\n")
     cnns = {}
     if args.cnn_seconds > 0:

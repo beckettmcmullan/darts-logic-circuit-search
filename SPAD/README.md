@@ -75,7 +75,7 @@ either folder:
 
 ```bash
 cd SPAD/area-optimized
-python -m neuralnetwork.dataset.download     # writes to SPAD/data/
+python -m training.dataset.download     # writes to SPAD/data/
 ```
 
 The circuit READMEs list the remaining steps.
