@@ -13,7 +13,7 @@ estimate() counts, per circuit (vectorized over a population):
   - each datapath flag and action that a live gate reads or that is not constant 0,
 and weights them with coefficients fitted by least squares to synthesized circuits.
 
-Fit (from SPAD/):  ../.venv/bin/python -m spad.hardware.area_model --circuits 400
+Fit (from SPAD/):  ../.venv/bin/python -m asic.synthesis.area_model --circuits 400
 """
 import argparse
 import json
@@ -22,8 +22,8 @@ import random
 
 import torch
 
-from spad import ROOT
-from spad.core.stream_model import ACTIONS, StreamConfig, input_names, pack_circuit, unpack_circuit
+from asic import ROOT
+from neuralnetwork.core.stream_model import ACTIONS, StreamConfig, input_names, pack_circuit, unpack_circuit
 
 MODEL_PATH = Path(__file__).with_name("area_model.json")
 CONFIDENCE_FLAGS = ("zero", "conf2", "conf4", "conf8", "full")
@@ -121,7 +121,7 @@ def activity(config, inputs, codes, photons):
     flag, state bit or gate output takes both values on some valid photon. A signal stuck
     at one value is a constant to synthesis, which deletes the logic behind it.
     """
-    from spad.core.stream_model import CONF_LEVELS
+    from neuralnetwork.core.stream_model import CONF_LEVELS
     c = config
     members, rays = len(inputs), len(photons)
     device = photons.device
@@ -203,7 +203,7 @@ def degenerate(circuit, rays=512, seed=0):
 
     Such a circuit does not measure anything. (Note the name: True means "degenerate".)
     """
-    from spad.core.stream_model import simulate_stream
+    from neuralnetwork.core.stream_model import simulate_stream
     g = torch.Generator().manual_seed(seed)
     centre = torch.randint(0, 672, (rays, 1), generator=g)
     photons = (centre + torch.randint(-12, 13, (rays, 64), generator=g)).clamp(0, 671)
@@ -239,8 +239,8 @@ def main():
     Ridge regression (strength 1e-3) on a random 80% of circuits is scored on the other 20%
     (reported as held-out error); the saved coefficients are refit on all circuits.
     """
-    from spad.hardware.synth import synthesize
-    from spad.hardware.verilog import stream_verilog
+    from asic.synthesis.synth import synthesize
+    from asic.synthesis.verilog import stream_verilog
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--data", type=Path, default=ROOT/"data")
     parser.add_argument("--runs", type=Path, nargs="*",

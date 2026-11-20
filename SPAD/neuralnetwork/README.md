@@ -1,13 +1,14 @@
-# The `spad` package
+# The `neuralnetwork` package
 
-Python code for a learned per-pixel range circuit for single-photon (SPAD) lidar.
+Python code that trains a learned per-pixel range circuit for single-photon (SPAD) lidar:
+the dataset, the gate-network model and its simulators, and the training.
 A conventional pipeline builds a 672-bin histogram of photon arrival times for each
 pixel and then takes the peak. This package instead trains a small circuit that keeps
 one running range estimate per pixel and updates it as each photon arrives. No
 histogram is stored.
 
 Units: one time bin is 750 ps, which is about 0.1124 m of range
-(`spad.dataset.prepare.BIN_METERS`). A histogram has 672 bins. Ranges are stored as
+(`neuralnetwork.dataset.prepare.BIN_METERS`). A histogram has 672 bins. Ranges are stored as
 bin indices and reported in metres.
 
 All commands below run from `SPAD/` (the parent of this folder), which is the package
@@ -48,11 +49,11 @@ is padding and changes nothing.
 | `training/` | `train_stream.py` | The training script (both phases). |
 | | `police.py` | A label-free plausibility check used during training (see below). |
 | | `baselines.py` | Reference methods: histogram peak, box filter, bias table, a small CNN, and the hand-written streaming rules. |
-| `hardware/` | `verilog.py` | Export a circuit to Verilog; simulate a Yosys netlist in numpy. |
-| | `synth.py` | Check the netlist against the Python simulator, then map to ASAP7 cells with Yosys and report area. |
-| | `timing.py` | Pre-layout critical-path estimate from Liberty tables. |
-| | `costs.py` | Build `data/asap7/costs.json`, the area and delay of every two-input truth table. |
-| | `area_model.py`, `area_model.json` | A linear whole-core area estimate fitted to Yosys results, used by the area objective. |
+
+The hardware code (Verilog export, Yosys/ASAP7 synthesis, timing, the area model and
+the circuit diagrams) is the `asic.synthesis` package in [`../asic/synthesis/`](../asic/synthesis/README.md).
+It imports `neuralnetwork.core` to check the hardware against the Python simulator, and the
+area objective in `train_stream.py` imports its area model.
 
 ## Data flow
 
@@ -61,7 +62,7 @@ dataset/download  ->  dataset/prepare  ->  dataset/calibration  ->  dataset/scen
  raw files            processed/N.npz       labels_N.npz            more captures
  + ASAP7 .lib         + metadata.json       + calibration_report    (optional)
         |
-        |  hardware/costs  ->  data/asap7/costs.json
+        |  asic/synthesis/costs  ->  data/asap7/costs.json
         v
 dataset/photons.load_rays(split)  ->  histograms [rays, 672] + target bins
         |
@@ -75,7 +76,7 @@ training/train_stream
    phase 2: exact evolutionary search (packed simulator)
         |
         v
-runs/NAME/circuit.json  ->  hardware/verilog  ->  hardware/synth, timing
+runs/NAME/circuit.json  ->  asic/synthesis: verilog, synth, timing, diagram
 ```
 
 ### Dataset
@@ -134,7 +135,7 @@ Phase 2, exact search (`--generations`, default 1000; `--population`, default 12
   offset on train photons; it is stored as `offset_bins` in `circuit.json`.
 
 `--objective area` switches phase 2 to shrink the circuit: it adds `prune` mutations,
-estimates whole-core area with `hardware/area_model.py`, and keeps the smallest circuit
+estimates whole-core area with `asic/synthesis/area_model.py`, and keeps the smallest circuit
 whose error stays within `--accuracy-tolerance` (default 5%) of the starting circuit.
 When Yosys is installed, `--synth-candidates` shortlisted mutants are synthesized per
 generation and a change is accepted only if real synthesis confirms it is smaller.
@@ -155,18 +156,9 @@ differentiable hinge on that distance; the search adds the violation rate. The p
 shape comes from the training histograms. The violation rate and a time-shift test are
 reported in the audit, not used to select the final circuit.
 
-### Hardware (`hardware/`)
+### Hardware
 
-`verilog.stream_verilog(circuit)` writes a synchronous module `photon_core` (ports
-`clk`, `rst`, `valid`, `arrival`, `candidate`): the fixed comparator and counters plus one
-combinational wire per learned gate. `synth` checks that the netlist matches
-`simulate_stream` bit for bit, then maps it with Yosys and ABC to ASAP7 cells and reports
-area. `timing` reads the mapped netlist and the Liberty tables and returns a
-critical-path estimate without wires or placement.
-
-ASAP7 is a predictive process design kit: the numbers are comparative estimates, not
-figures for a manufacturable design. `costs.py` and `timing.py` use Liberty table values
-directly, and `area_model.py` is a regression on Yosys results.
+See [`../asic/synthesis/README.md`](../asic/synthesis/README.md).
 
 ## Entry points
 
@@ -174,16 +166,16 @@ Run each as a module from `SPAD/`:
 
 | Command | What it does |
 |---|---|
-| `python -m spad.dataset.download [--root DIR] [--budget-bytes N]` | Fetch the pinned data subset. |
-| `python -m spad.dataset.prepare [--captures N ...] [--max-rays N] [--seed N]` | Project labels and sample rays. |
-| `python -m spad.hardware.costs [--root DIR]` | Build `data/asap7/costs.json` (needs the downloaded ASAP7 libraries). |
-| `python -m spad.dataset.calibration [--root DIR]` | Refine intrinsics, write labels. |
-| `python -m spad.dataset.scenes [--scenes ...] [--rays-per-view N]` | Add Reconstruction scenes. |
-| `python -m spad.training.baselines [--cnn-seconds S] [--out DIR]` | Reference methods; writes `design_metrics.json`. |
-| `python -m spad.training.train_stream --out runs/NAME [options]` | Train a circuit (below). |
-| `python -m spad.hardware.synth runs/NAME/circuit.json ...` | Verify and synthesize circuits plus the rule baseline. |
-| `python -m spad.hardware.timing runs/NAME/circuit.json ...` | Critical-path estimate. |
-| `python -m spad.hardware.area_model --circuits 400` | Refit `area_model.json` (slow: runs Yosys). |
+| `python -m neuralnetwork.dataset.download [--root DIR] [--budget-bytes N]` | Fetch the pinned data subset. |
+| `python -m neuralnetwork.dataset.prepare [--captures N ...] [--max-rays N] [--seed N]` | Project labels and sample rays. |
+| `python -m asic.synthesis.costs [--root DIR]` | Build `data/asap7/costs.json` (needs the downloaded ASAP7 libraries). |
+| `python -m neuralnetwork.dataset.calibration [--root DIR]` | Refine intrinsics, write labels. |
+| `python -m neuralnetwork.dataset.scenes [--scenes ...] [--rays-per-view N]` | Add Reconstruction scenes. |
+| `python -m neuralnetwork.training.baselines [--cnn-seconds S] [--out DIR]` | Reference methods; writes `design_metrics.json`. |
+| `python -m neuralnetwork.training.train_stream --out runs/NAME [options]` | Train a circuit (below). |
+| `python -m asic.synthesis.synth runs/NAME/circuit.json ...` | Verify and synthesize circuits plus the rule baseline. |
+| `python -m asic.synthesis.timing runs/NAME/circuit.json ...` | Critical-path estimate. |
+| `python -m asic.synthesis.area_model --circuits 400` | Refit `area_model.json` (slow: runs Yosys). |
 
 `train_stream` options worth knowing (run with `--help` for all):
 
@@ -206,10 +198,10 @@ Run each as a module from `SPAD/`:
 Example:
 
 ```
-python -m spad.training.train_stream --out runs/my-run --device cuda
-python -m spad.training.train_stream --out runs/my-area-run --objective area \
+python -m neuralnetwork.training.train_stream --out runs/my-run --device cuda
+python -m neuralnetwork.training.train_stream --out runs/my-area-run --objective area \
     --init circuit --init-circuit runs/my-run/circuit.json
-python -m spad.hardware.synth runs/my-area-run/circuit.json
+python -m asic.synthesis.synth runs/my-area-run/circuit.json
 ```
 
 ## Circuit file format
@@ -223,6 +215,6 @@ index the base signals followed by the previous layer's outputs. The trainer als
 
 ## Dependencies
 
-`numpy` and `torch` for everything. `yowasp-yosys` for `hardware/synth.py`,
-`timing.py` and the area objective's synthesis check. `costs.py` calls `tar` to read
+`numpy` and `torch` for everything. `yowasp-yosys` for `asic/synthesis/synth.py`,
+`timing.py` and the area objective's synthesis check. `asic/synthesis/costs.py` calls `tar` to read
 `.7z` library archives (macOS `bsdtar` can; GNU tar may need `7z`).

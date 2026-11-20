@@ -3,13 +3,13 @@
 These are the comparison points for the learned circuit: histogram argmax ("peak"),
 a width-8 box filter then argmax ("box8"), a peak with a bias table keyed on the peak
 height ("lut"), a small 1-D CNN over the histogram, and the hand-written streaming
-rules from spad.core.stream_model.rule_circuit. Each is scored on a full histogram and
-on photon budgets of 16-256 photons drawn with spad.dataset.photons. Offsets and the
+rules from neuralnetwork.core.stream_model.rule_circuit. Each is scored on a full histogram and
+on photon budgets of 16-256 photons drawn with neuralnetwork.dataset.photons. Offsets and the
 CNN are fitted on the train split only; results on the architecture and validation
 splits are written to design_metrics.json. Distances are reported in metres
 (1 bin = 750 ps = about 0.1124 m).
 
-Usage (from SPAD/):  python -m spad.training.baselines [--data DIR] [--out DIR]
+Usage (from SPAD/):  python -m neuralnetwork.training.baselines [--data DIR] [--out DIR]
                          [--cnn-seconds S] [--cnn-budgets N ...] [--threads N]
 """
 import argparse
@@ -21,10 +21,10 @@ import numpy as np
 import torch
 from torch import nn
 
-from spad import ROOT
-from spad.dataset.photons import load_rays, photon_histogram, sample_photons
-from spad.dataset.prepare import BIN_METERS
-from spad.core.stream_model import StreamConfig, rule_circuit, simulate_stream
+from neuralnetwork import ROOT
+from neuralnetwork.dataset.photons import load_rays, photon_histogram, sample_photons
+from neuralnetwork.dataset.prepare import BIN_METERS
+from neuralnetwork.core.stream_model import StreamConfig, rule_circuit, simulate_stream
 
 BUDGETS = (16, 32, 64, 128, 256)
 

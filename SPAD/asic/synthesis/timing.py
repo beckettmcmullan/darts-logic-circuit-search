@@ -9,7 +9,7 @@ the load column nearest 1.44 fF (about a fanout of 2-3), taking the slower of ri
 fall. This is a pre-layout estimate: no wires, no placement, no clock skew. Real
 post-route paths are slower; use it to compare designs, not as signoff timing.
 
-Usage (from SPAD/):  ../.venv/bin/python -m spad.hardware.timing runs/<run>/*/circuit.json
+Usage (from SPAD/):  ../.venv/bin/python -m asic.synthesis.timing runs/<run>/*/circuit.json
 """
 import argparse
 from functools import lru_cache
@@ -19,10 +19,10 @@ import re
 import shutil
 import tempfile
 
-from spad import ROOT
-from spad.hardware.costs import attribute, groups
-from spad.hardware.synth import LIBRARIES, yosys
-from spad.hardware.verilog import stream_verilog
+from asic import ROOT
+from asic.synthesis.costs import attribute, groups
+from asic.synthesis.synth import LIBRARIES, yosys
+from asic.synthesis.verilog import stream_verilog
 
 SLEW_PS, LOAD_FF = 20., 1.44
 

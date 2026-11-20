@@ -1,15 +1,15 @@
 """ASAP7 Liberty-derived search proxies, not synthesis or signoff timing.
 
-Reads the ASAP7 Liberty (.lib) cell libraries downloaded by spad.dataset.download and
+Reads the ASAP7 Liberty (.lib) cell libraries downloaded by neuralnetwork.dataset.download and
 builds data/asap7/costs.json: for each of the 16 possible two-input truth tables, the
 area and delay of the cheapest ASAP7 cell combination that implements it (for example
 a NAND cell for code 7, or an inverter plus an AND cell for "a and not b"). Pass-throughs
 and constants cost nothing. The gradient phase (train_stream.expected_area) and core_cost
 use this table as a differentiable area penalty. It counts the learned gates only; the
-whole-core area, including the fixed datapath, is estimated by spad.hardware.area_model.
+whole-core area, including the fixed datapath, is estimated by asic.synthesis.area_model.
 ASAP7 is a predictive library, and these are library numbers, not layout results.
 
-Usage (from SPAD/):  python -m spad.hardware.costs [--root DIR]
+Usage (from SPAD/):  python -m asic.synthesis.costs [--root DIR]
 """
 import argparse
 import hashlib
@@ -20,8 +20,8 @@ import subprocess
 
 import torch
 
-from spad import ROOT
-from spad.dataset.download import usage
+from asic import ROOT
+from neuralnetwork.dataset.download import usage
 
 
 def groups(text, kind):

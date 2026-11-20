@@ -20,11 +20,11 @@ Main training entry point. Two phases, run in order:
    circuit. Defaults are --generations 1000 and --population 128.
 
 Training samples are generated fresh at every step from the recorded histograms (see
-spad.dataset.photons.sample_conditions). Run from SPAD/ with
-  python -m spad.training.train_stream --out runs/NAME [--device cuda] [options]
+neuralnetwork.dataset.photons.sample_conditions). Run from SPAD/ with
+  python -m neuralnetwork.training.train_stream --out runs/NAME [--device cuda] [options]
 It writes circuit.json (the final circuit), summary.json, history.jsonl and state.pt
-under --out. Pass --help for every option. Needs data/ from spad.dataset.* and
-data/asap7/costs.json from spad.hardware.costs.
+under --out. Pass --help for every option. Needs data/ from neuralnetwork.dataset.* and
+data/asap7/costs.json from asic.synthesis.costs.
 
 Truth tables train on the train split and routing on the architecture split.
 Checkpoints are chosen on the validation split. Test splits are never loaded.
@@ -38,7 +38,7 @@ Its violation rate and a time-shift test are reported as audits, not used for
 checkpoint selection.
 
 --objective area turns the search toward the smallest chip: every circuit's whole-core
-area is estimated with spad/hardware/area_model.py (fitted to Yosys + ASAP7 synthesis,
+area is estimated with asic/synthesis/area_model.py (fitted to Yosys + ASAP7 synthesis,
 including the datapath parts synthesis removes when nothing reads them), and the search
 keeps the smallest circuit whose error stays within --accuracy-tolerance of the circuit
 it started from. Start it from a trained circuit with --init circuit --init-circuit PATH.
@@ -53,12 +53,12 @@ import time
 
 import torch
 
-from spad.training.baselines import metrics
-from spad import ROOT
-from spad.dataset.photons import load_rays, sample_conditions
-from spad.training.police import Police, measure_pulse
-from spad.hardware.area_model import MODEL_PATH, AreaModel
-from spad.core.stream_model import (StreamConfig, StreamCore, input_names, pack_circuit, rule_circuit,
+from neuralnetwork.training.baselines import metrics
+from neuralnetwork import ROOT
+from neuralnetwork.dataset.photons import load_rays, sample_conditions
+from neuralnetwork.training.police import Police, measure_pulse
+from asic.synthesis.area_model import MODEL_PATH, AreaModel
+from neuralnetwork.core.stream_model import (StreamConfig, StreamCore, input_names, pack_circuit, rule_circuit,
                           set_search_compile, simulate_population_packed, simulate_stream, unpack_circuit)
 
 
@@ -302,8 +302,8 @@ def main():
     def real_area(circuits):
         """Yosys + ASAP7 area of each circuit (cached), synthesized in parallel; None without Yosys."""
         from concurrent.futures import ThreadPoolExecutor
-        from spad.hardware.synth import synthesize
-        from spad.hardware.verilog import stream_verilog
+        from asic.synthesis.synth import synthesize
+        from asic.synthesis.verilog import stream_verilog
         keys = [json.dumps(c["layers"], separators=(",", ":")) for c in circuits]
         todo = {k: c for k, c in zip(keys, circuits) if k not in synthesized_areas}
         work = lambda c: synthesize(stream_verilog(c), "photon_core", args.data)["area"] or 0.
@@ -555,8 +555,8 @@ def main():
                "start_validation_mae_m": run["anchor_mae"],
                "audit_fresh_photons": audit, "pulse": pulse.tolist(), "seconds": elapsed()}
     try:   # real synthesized area when Yosys is installed (locally; usually not on Kaggle)
-        from spad.hardware.synth import synthesize
-        from spad.hardware.verilog import stream_verilog
+        from asic.synthesis.synth import synthesize
+        from asic.synthesis.verilog import stream_verilog
         synthesized = synthesize(stream_verilog(circuit), "photon_core", args.data)
         summary["synthesized"] = {k: v for k, v in synthesized.items() if k != "report"}
     except Exception as error:

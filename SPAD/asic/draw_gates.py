@@ -1,6 +1,6 @@
 """Draw every cell of a routed ASAP7 netlist as a schematic with real logic-gate symbols.
 
-Usage (from SPAD/):  python asic/draw_gates.py asic/results/<run>   [-o gates.svg]
+Usage (from SPAD/):  python asic/draw_gates.py asic/results/<run> -o circuits/<name>/gates.svg
 
 Requires Yosys (on PATH) and Node.js with npx (netlistsvg is fetched on first use).
 
@@ -8,7 +8,8 @@ How it works:
   1. Yosys reads <run>/6_final.v (the routed netlist from the OpenROAD flow) and writes JSON.
   2. This script builds a netlistsvg "skin": one SVG template per ASAP7 cell type found in
      the netlist. A template holds the drawing and the pin positions (<g s:pid=...>).
-  3. netlistsvg places and wires the cells using that skin and writes <run>/gates.svg.
+  3. netlistsvg places and wires the cells using that skin and writes the SVG to --out
+     (default <run>/gates.svg). The final design's drawing is kept in circuits/final/.
 
 The templates are drawn here, not taken from netlistsvg, so that each ASAP7 cell shows the
 logic it implements. Simple cells (INV, BUF, NAND2, OR3, XNOR2, ...)
@@ -314,7 +315,7 @@ def default_skin():
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("run", type=Path, help="results folder containing 6_final.v")
-    parser.add_argument("-o", "--out", default="gates.svg", help="output name inside the run folder")
+    parser.add_argument("-o", "--out", type=Path, help="output SVG path (default: <run>/gates.svg)")
     args = parser.parse_args()
     # All intermediate files live in a temporary folder; only the SVG is kept.
     with tempfile.TemporaryDirectory() as tmp:
@@ -336,7 +337,7 @@ def main():
         templates = "\n".join(template_for(t, p) for t, p in sorted(pins.items()))
         skin = skin_src.replace("</style>", STYLE + "</style>").replace("</svg>", templates + "\n</svg>")
         (tmp/"skin.svg").write_text(skin)
-        out = args.run/args.out
+        out = args.out or args.run/"gates.svg"
         subprocess.run(["npx", "--yes", "netlistsvg", str(tmp/"netlist.json"), "--skin", str(tmp/"skin.svg"),
                         "-o", str(out.resolve())], check=True)
     counts = {}

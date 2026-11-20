@@ -36,7 +36,7 @@ removed before comparing; see Police.offset. Bins are 750 ps (about 0.1124 m).
 """
 import torch
 
-from spad.dataset.photons import photon_histogram
+from neuralnetwork.dataset.photons import photon_histogram
 
 BINS = 672
 

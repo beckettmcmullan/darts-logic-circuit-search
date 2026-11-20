@@ -1,7 +1,9 @@
 # Saved circuits
 
-Two trained circuits, each as the circuit description (`circuit.json`) and the
-Verilog generated from it (`core.v`).
+Two trained circuits. Each folder holds the circuit description (`circuit.json`), the
+Verilog generated from it (`core.v`), the learned logic as a gate diagram
+(`controller.svg`) and as Boolean equations (`equations.txt`).
+`final/` also has `gates.svg`, every standard cell of its routed chip layout.
 
 | Folder | What it is |
 |---|---|
@@ -42,13 +44,34 @@ the input to the layout flow. The `asic` copy is the one the flow reads, so you
 can swap in another circuit there without changing these folders.
 `area-optimized/core.v` has not been run through the flow.
 
+## Gate diagrams
+
+| File | What it shows |
+|---|---|
+| `controller.svg` | The learned gates only, after removing constant gates, pass-throughs and gates whose output is never used. Inputs are on the left (blue), gates in the middle, and the next memory bits and actions on the right (green). The final design keeps 26 of its 48 gates, the area-optimized one 24. |
+| `equations.txt` | A minimized Boolean equation for each memory bit and action. Flag combinations the comparator can never produce (for example `near1` without `near2`) are treated as don't-cares, so the equations are shorter than the gates. |
+| `final/gates.svg` | All 381 logic cells of the routed ASAP7 netlist (`6_final.v` in [`../asic/results/`](../asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md)) drawn with logic-gate symbols, including the hand-made comparator, counters and clock buffers. Compound cells are drawn as their internal gates inside a dashed outline. The image is large, so open it and zoom in. |
+
+To redraw `controller.svg` and `equations.txt` (needs `sympy`), from `SPAD/`:
+
+```bash
+python -m asic.synthesis.diagram circuits/final/circuit.json --out circuits/final --no-netlist
+```
+
+This also rewrites `core.v`. The diagram title is taken from the folder name.
+To redraw `gates.svg` from a routed layout (needs Yosys and Node.js):
+
+```bash
+python asic/draw_gates.py asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps -o circuits/final/gates.svg
+```
+
 ## Regenerate core.v
 
 The function is `stream_verilog(circuit, module="photon_core")` in
-[`spad/hardware/verilog.py`](../spad/hardware/verilog.py). It takes the loaded
+[`asic/synthesis/verilog.py`](../asic/synthesis/verilog.py). It takes the loaded
 JSON and returns the Verilog text. From the `SPAD/` folder:
 
 ```bash
-python -c "import json; from spad.hardware.verilog import stream_verilog; \
+python -c "import json; from asic.synthesis.verilog import stream_verilog; \
   print(stream_verilog(json.load(open('circuits/final/circuit.json'))), end='')" > circuits/final/core.v
 ```

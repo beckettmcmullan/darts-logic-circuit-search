@@ -178,7 +178,10 @@ Two simple tests catch circuits that only look good:
 ![The 26 of 48 gates that do real work](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/explainer/09_what_survived.webp)
 
 Of the 48 gates, 26 do real work, together with the 4 memory bits. The rest are
-constants or unused, and synthesis removes them.
+constants or unused, and synthesis removes them. The full diagram of those gates
+is [`circuits/final/controller.svg`](circuits/final/controller.svg), and the
+Boolean equation for each output is in
+[`circuits/final/equations.txt`](circuits/final/equations.txt).
 
 ![What each photon does to the guess, by where it lands](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/explainer/10_what_it_learned.webp)
 
@@ -254,7 +257,7 @@ bit. The layout file (GDSII, the standard file format for chip layouts), routed
 circuit and full timing report are in
 [`asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md).
 
-**Every gate in the layout:** [`gates.svg`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/gates.svg) draws all 381
+**Every gate in the layout:** [`gates.svg`](circuits/final/gates.svg) draws all 381
 logic cells of the routed circuit with logic-gate symbols. Compound cells such
 as OA21, AOI221 and the half and full adders are drawn as their internal gates
 inside a dashed outline. The image is large, so open it and zoom in.
@@ -280,15 +283,18 @@ inside a dashed outline. The image is large, so open it and zoom in.
 
 ## What's in this folder
 
+The folder has three parts: the neural network that learns the circuit, the circuits
+it produced, and the hardware flow that turns a circuit into a chip layout.
+
 | Folder or file | Purpose |
 |---|---|
-| [`spad/dataset/`](spad/dataset/) | Downloads SP-TransientBench, prepares the photon data and reference distances |
-| [`spad/core/`](spad/core/) | The circuit model and its exact simulators |
-| [`spad/training/`](spad/training/) | The search, the physics check and the comparison methods |
-| [`spad/hardware/`](spad/hardware/) | Verilog export, ASAP7 synthesis, timing and the area estimate |
-| [`spad/README.md`](spad/README.md) | Map of the Python package and how data moves through it |
-| [`circuits/`](circuits/README.md) | The chosen circuit and its area-optimized version, as `circuit.json` and Verilog |
-| [`asic/`](asic/README.md) | OpenROAD flow inputs, the run script, the gate-drawing script and the routed layout |
+| [`neuralnetwork/`](neuralnetwork/README.md) | The Python package that learns the circuit. Its README maps the package and how data moves through it. |
+| [`neuralnetwork/dataset/`](neuralnetwork/dataset/) | Downloads SP-TransientBench, prepares the photon data and reference distances |
+| [`neuralnetwork/core/`](neuralnetwork/core/) | The circuit model and its exact simulators |
+| [`neuralnetwork/training/`](neuralnetwork/training/) | The search, the physics check and the comparison methods |
+| [`circuits/`](circuits/README.md) | The chosen circuit and its area-optimized version: `circuit.json`, Verilog, Boolean equations and gate diagrams (`controller.svg` for the learned logic, `gates.svg` for every cell of the final layout) |
+| [`asic/`](asic/README.md) | Everything hardware: synthesis, the OpenROAD layout flow and the routed layout |
+| [`asic/synthesis/`](asic/synthesis/README.md) | Verilog export, Yosys/ASAP7 synthesis, timing, the area estimate and the diagram script |
 | [`requirements.txt`](requirements.txt) | Python packages |
 
 Folders created when you run things (`data/`, `runs/`, `asic/flow/`) are not
@@ -301,20 +307,20 @@ Run everything from this `SPAD/` folder. The first command downloads the
 dataset into `data/`; the others read and extend it:
 
 ```bash
-python -m spad.dataset.download      # fetch SP-TransientBench
-python -m spad.dataset.prepare       # prepare the photon data
-python -m spad.hardware.costs        # read ASAP7 cell sizes and delays
-python -m spad.dataset.calibration   # refine the reference distances
-python -m spad.dataset.scenes        # add the larger scenes
+python -m neuralnetwork.dataset.download     # fetch SP-TransientBench
+python -m neuralnetwork.dataset.prepare      # prepare the photon data
+python -m asic.synthesis.costs               # read ASAP7 cell sizes and delays
+python -m neuralnetwork.dataset.calibration  # refine the reference distances
+python -m neuralnetwork.dataset.scenes       # add the larger scenes
 ```
 
 To train and shrink a circuit, then check its real area:
 
 ```bash
-python -m spad.training.train_stream --help
-python -m spad.training.train_stream --objective area --init circuit \
+python -m neuralnetwork.training.train_stream --help
+python -m neuralnetwork.training.train_stream --objective area --init circuit \
   --init-circuit circuits/final/circuit.json --steps 0 --out runs/my-area-run
-python -m spad.hardware.synth runs/my-area-run/circuit.json
+python -m asic.synthesis.synth runs/my-area-run/circuit.json
 ```
 
 The chip layout needs Docker. [`asic/README.md`](asic/README.md) explains how to

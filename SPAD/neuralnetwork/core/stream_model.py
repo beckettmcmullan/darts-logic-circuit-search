@@ -38,7 +38,7 @@ from dataclasses import asdict, dataclass
 import torch
 from torch import nn
 
-from spad.core.model import GateLayer, light_gate
+from neuralnetwork.core.model import GateLayer, light_gate
 
 ACTIONS = ("replace", "up", "down", "inc", "dec")
 CONF_LEVELS = (2, 4, 8)

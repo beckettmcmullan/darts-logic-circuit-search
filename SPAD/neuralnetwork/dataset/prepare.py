@@ -6,11 +6,11 @@ and the matching Livox reference point cloud, projects the cloud into the SPAD i
 with the released intrinsics, converts each pixel's range to a target time bin, and
 saves a random sample of up to --max-rays labelled rays per capture to
 processed/{capture}.npz plus processed/metadata.json. Labels are later refined by
-spad.dataset.calibration.
+neuralnetwork.dataset.calibration.
 
 Target bin = (range_m + pixel_offset_m) / BIN_METERS + --bin-offset.
 
-Usage (from SPAD/):  python -m spad.dataset.prepare [--root DIR] [--max-rays N] ...
+Usage (from SPAD/):  python -m neuralnetwork.dataset.prepare [--root DIR] [--max-rays N] ...
 """
 import argparse
 import json
@@ -18,8 +18,8 @@ from pathlib import Path
 
 import numpy as np
 
-from spad import ROOT
-from spad.dataset.download import usage
+from neuralnetwork import ROOT
+from neuralnetwork.dataset.download import usage
 
 # Range per time bin: speed of light x 750 ps, halved for the round trip (about 0.1124 m).
 BIN_METERS = 299_792_458 * 750e-12 / 2

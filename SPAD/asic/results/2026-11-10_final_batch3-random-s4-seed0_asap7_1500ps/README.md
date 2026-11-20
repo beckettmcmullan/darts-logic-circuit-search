@@ -53,11 +53,11 @@ area (110 vs 104 µm²) and a faster clock (682 vs 738 ps).
 `6_final.v` (routed netlist), `6_final.sdc`, `6_finish.rpt` (timing, power, area; setup slack is the margin by which the slowest path meets the clock,
 hold slack the margin against signals changing too soon after a clock edge),
 `5_route_drc.rpt` (empty: no design-rule check errors), `summary.json`, `final_*.webp` (layout, routing,
-placement, worst path, clock tree, congestion), `gates.svg` (schematic of all 381
+placement, worst path, clock tree, congestion), [`../../../circuits/final/gates.svg`](../../../circuits/final/gates.svg) (kept with the circuit; schematic of all 381
 logic cells in `6_final.v` drawn with logic-gate symbols, clock-tree buffers included;
 compound cells such as OA21, AOI221 and the half/full adders are shown as their internal
 gates inside a dashed cell outline; the other 70 of the 451 cells are tap cells, which have
-no logic; redraw with `python asic/draw_gates.py <this folder>` from `SPAD/`),
+no logic; redraw with `python asic/draw_gates.py <this folder> -o circuits/final/gates.svg` from `SPAD/`),
 `training_accuracy.png` (validation mean error during the gradient phase and the exact search,
 from `runs/2026-11-10_kaggle-t4_batch3_fused-larger-search/random-s4-seed0.log`), `explainer/`
 (figures drawn from this circuit's data, used in the SPAD README), and the inputs `photon_core.v`,
