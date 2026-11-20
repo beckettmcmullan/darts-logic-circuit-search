@@ -1,0 +1,19 @@
+# k4 + coincidence gate: learned controller
+# 17 gates do real work out of 120
+# impossible flag combinations are treated as don't-cares
+
+next_state0 = ~state0
+next_state1 = full | near16 | ~state4
+next_state2 = 0
+next_state3 = near8
+next_state4 = ~state3 & ~state4
+next_state5 = state5
+next_state6 = ~zero
+next_state7 = 1
+do_replace = (lt & zero) | (zero & ~near16)
+do_up = (lt & zero) | (zero & ~near16) | (near16 & ~lt & ~zero)
+do_down = (near8 & state7) | (~near8 & ~state7)
+do_inc = near8 | state1
+do_dec = ~near8 & ~state3
+step_select0 = (lt & near1) | (near16 & ~lt & ~near1)
+step_select1 = full

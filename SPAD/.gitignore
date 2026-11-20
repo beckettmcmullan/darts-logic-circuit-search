@@ -3,7 +3,7 @@ runs/
 __pycache__/
 kaggle/dist/
 kaggle/batches/*/*.zip
-asic/flow/
+*/asic/flow/
 archive/**/*.zip
 archive/**/*.mp4
 docs/video/spad_explainer_raw.mp4

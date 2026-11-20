@@ -1,0 +1,779 @@
+"""Search a streaming controller: bilevel DARTS, then batched hard search.
+
+Main training entry point. Two phases, run in order:
+
+1. Gradient phase (--steps, default 1500). Each step does two updates on StreamCore:
+   routing logits on a batch from the architecture split, then truth-table logits on a
+   batch from the train split (a first-order bilevel, DARTS-style, update). The softmax
+   temperature falls geometrically from --start-temperature to --end-temperature over
+   the run. From --harden-after (fraction of steps, default 0.3) the forward pass uses
+   the straight-through estimator: the value is the hard Boolean circuit, the gradient
+   is the soft one. Every --eval-every steps the hardened circuit is scored on the
+   validation split; if its error exceeds --rollback-factor (1.25) times the best so far
+   after the STE phase has started, the model returns to the best state and the optimizer
+   state is cleared.
+2. Hard search (--generations, --population). A hill-climbing evolutionary search on the
+   exact discrete circuit, scored with the bit-packed simulator in stream_model.py. Each
+   generation mutates the current circuit (truth-table bit flips, and rewired inputs),
+   scores table mutants on a fresh train batch and rewired mutants on a fresh
+   architecture batch, and keeps the best mutant if it is no worse than the current
+   circuit. Defaults are --generations 1000 and --population 128.
+
+Training samples are generated fresh at every step from the recorded histograms (see
+neuralnetwork.dataset.photons.sample_conditions). Run from SPAD/accuracy-focused/ with
+  python -m neuralnetwork.training.train_stream --out runs/NAME [--device cuda] [options]
+It writes circuit.json (the final circuit), summary.json, history.jsonl and state.pt
+under --out. Pass --help for every option. Needs data/ from neuralnetwork.dataset.* and
+data/asap7/costs.json from asic.synthesis.costs.
+
+Truth tables train on the train split and routing on the architecture split.
+Checkpoints are chosen on the validation split. Test splits are never loaded.
+Hard search optimizes the exact discrete circuit that gradients only approximate.
+Runs resume from state.pt, so a job can stop at --max-seconds and continue later.
+
+Every sample draws its own photon count and extra-ambient level, so the circuit
+cannot tune itself to one exposure. The physics police (police.py, training only)
+penalizes ranges the photons themselves do not support; it never sees labels.
+Its violation rate and a time-shift test are reported as audits, not used for
+checkpoint selection.
+
+--objective area turns the search toward the smallest chip: every circuit's whole-core
+area is estimated with asic/synthesis/area_model.py (fitted to Yosys + ASAP7 synthesis,
+including the datapath parts synthesis removes when nothing reads them), and the search
+keeps the smallest circuit whose error stays within --accuracy-tolerance of the circuit
+it started from. Start it from a trained circuit with --init circuit --init-circuit PATH.
+"""
+import argparse
+from dataclasses import asdict
+import json
+import os
+from pathlib import Path
+import sys
+import time
+
+import torch
+
+from neuralnetwork.dataset.prepare import BIN_METERS
+from neuralnetwork.training.baselines import metrics, subbin_fit
+from neuralnetwork import ROOT
+from neuralnetwork.dataset.photons import load_rays, photon_histogram, sample_conditions
+from neuralnetwork.training.police import Police, measure_pulse
+from asic.synthesis.area_model import MODEL_PATH, AreaModel
+from neuralnetwork.core.stream_model import (ACTIONS, StreamConfig, StreamCore, input_names, pack_circuit, predict_bins,
+                          rule_circuit, set_search_compile, simulate_population_packed, swap_rule, swap_slot,
+                          unpack_circuit, window_value)
+
+
+def range_loss(prediction, target, delta=4., cap=0.):
+    return robust_loss(prediction - target, delta, cap).mean()
+
+
+def robust_loss(error, delta=4., cap=0.):
+    """Per-ray Huber loss in bins. With cap > 0 the loss stops growing at that value, so a
+    grossly wrong answer costs the same however wrong it is and cannot outweigh many
+    small errors: the search then works on resolution and on how often it is wrong."""
+    loss = torch.nn.functional.huber_loss(error, torch.zeros_like(error), delta=delta, reduction="none")
+    return loss.clamp(max=cap) if cap else loss
+
+
+def expected_area(model, costs):
+    """Differentiable controller area: expected truth-table cost summed over all gates.
+
+    costs: the 16-entry "truth_table_costs" list from costs.json. Each gate's four table
+    logits give four independent Bernoulli probabilities, from which the probability of
+    each of the 16 truth tables follows. Counts only the learned gates, not the datapath.
+    """
+    device = model.layers[0].routes.device
+    tables = torch.tensor([[float((code >> i) & 1) for i in range(4)] for code in range(16)], device=device)
+    areas = torch.tensor([x["area"] for x in costs], device=device)
+    total = 0.
+    for layer in model.layers:
+        truth = layer.table_logits.sigmoid()
+        total = total + (torch.where(tables[None] > 0, truth[:, None], 1-truth[:, None]).prod(-1) @ areas).sum()
+    return total
+
+
+class Validator:
+    """Scores circuits with a train-fitted offset on fixed photon samples under randomized conditions."""
+    def __init__(self, train, validation, conditions, sets, police, seed=7, cap_bins=9.):
+        self.cap_bins = cap_bins
+        generator = torch.Generator(device=train[0].device).manual_seed(seed)
+        pick = torch.randperm(len(train[1]), generator=generator, device=train[0].device)[:8000]
+        self.fit_targets = train[1][pick]
+        self.fit_photons = sample_conditions(train[0][pick], *conditions, generator)[0]
+        draws = [sample_conditions(validation[0], *conditions, generator) for _ in range(sets)]
+        self.photons, self.counts, self.background = (torch.cat(x) for x in zip(*draws))
+        self.targets = validation[1].repeat(sets)
+        self.police = police
+        self.evidence = police.evidence(self.photons) if police else None
+
+    def offset(self, circuit):
+        return float((predict_bins(circuit, self.fit_photons) - self.fit_targets).median())
+
+    def __call__(self, circuit):
+        prediction = predict_bins(circuit, self.photons) - self.offset(circuit)
+        row = metrics(prediction, self.targets)
+        # Mean error with each pixel's error limited to cap_bins (about 1 m): unlike the plain
+        # mean it is not decided by the handful of pixels that are tens of metres off.
+        row["capped_m"] = float((prediction - self.targets).abs().clamp(max=self.cap_bins).mean() * BIN_METERS)
+        return row
+
+    def audit(self, circuit, shift=24):
+        """Hidden-inspector report: never used to pick a circuit."""
+        raw = predict_bins(circuit, self.photons)
+        prediction = raw - self.offset(circuit)
+        report = {"overall": metrics(prediction, self.targets)}
+        if self.police:
+            flags = self.police.violations(raw, self.evidence)
+            report["police_violation_rate"] = {k: float(v.float().mean()) for k, v in flags.items()}
+        rows = {}
+        for low, high in ((16, 32), (32, 64), (64, 128), (128, 257)):
+            keep = (self.counts >= low) & (self.counts < high)
+            rows[f"photons_{low}-{min(high, 256)}"] = keep
+        for low, high in ((0, .2), (.2, .4), (.4, 1.01)):
+            rows[f"extra_background_{low}-{min(high, 1)}"] = (self.background >= low) & (self.background < high)
+        for name, keep in rows.items():
+            if keep.any():
+                row = metrics(prediction[keep], self.targets[keep])
+                row["median_signed_bins"] = float((prediction[keep] - self.targets[keep]).median())
+                if self.police:
+                    row["police_violation_rate"] = float(flags["physics"][keep].float().mean())
+                report[name] = row
+        # A range estimator must move with the photons: delay every arrival by `shift`
+        # bins and the answer should move by the same amount.
+        latest = self.photons.max(1).values
+        movable = (latest + shift < 672) & (latest >= 0)
+        moved = torch.where(self.photons >= 0, self.photons + shift, self.photons)[movable]
+        change = predict_bins(circuit, moved) - raw[movable]
+        report["time_shift_test"] = {"shift_bins": shift, "rays": int(movable.sum()),
+                                     "moves_with_photons_within_1_bin": float(((change - shift).abs() <= 1).float().mean())}
+        return report
+
+
+def embed_circuit(circuit, config):
+    """Place a trained circuit inside a larger or sub-bin core without changing what it computes.
+
+    Gates keep their roles (next state, actions, spare logic); the new core's extra gates,
+    extra state bits and step select start as constant 0, so every step stays one whole bin.
+    """
+    old = StreamConfig(**circuit["config"])
+    grown = config.conf_bits > old.conf_bits       # a larger confidence counter: not exactly the same behaviour
+    if old.layers != config.layers or not set(old.windows) <= set(config.windows) \
+            or old.state_bits > config.state_bits or not set(old.conf_levels) <= set(config.conf_levels) \
+            or config.conf_bits < old.conf_bits or (grown and 2**old.conf_bits not in config.conf_levels):
+        raise ValueError("Can only embed into a core with the same depth that keeps every window and confidence level")
+    if old.step_bits > config.step_bits or (old.frac_bits != config.frac_bits and (old.frac_bits or old.step_bits)):
+        raise ValueError("A sub-bin circuit can only be embedded at the same resolution")
+    if old.rivals and (old.rivals, old.rival_window, old.rival_bits, old.rival_levels, old.rival_track) != (
+            config.rivals, config.rival_window, config.rival_bits, config.rival_levels, config.rival_track):
+        raise ValueError("A circuit with rival registers can only be embedded with the same registers")
+    if old.coincidence_depth and (old.coincidence_depth, old.coincidence_window) != (
+            config.coincidence_depth, config.coincidence_window):
+        raise ValueError("A circuit with the coincidence gate can only be embedded with the same gate")
+    old_names, names = input_names(old), input_names(config)
+    if grown:
+        # The old counter stopped at its top value and called that "full". The larger counter keeps
+        # counting, so the old circuit's "full" reads the first level above the old top instead.
+        # Close to the old behaviour, not identical: the search starts from it and repairs the rest.
+        old_names = [f"conf{2**old.conf_bits}" if n == "full" else n for n in old_names]
+    actions = len(ACTIONS)
+    def gate_slot(i):
+        if i < old.state_bits:
+            return i
+        if i < old.state_bits + actions + old.step_bits:      # actions, then the step select
+            return config.state_bits + i - old.state_bits
+        if old.rivals and i == swap_slot(old):
+            return swap_slot(config)
+        return (config.state_bits + actions + config.step_bits + (config.rivals > 0)
+                + i - old.state_bits - actions - old.step_bits - (old.rivals > 0))
+    if gate_slot(old.width - 1) >= config.width:
+        raise ValueError("The new core is too narrow for this circuit")
+    source = lambda i: names.index(old_names[i]) if i < len(old_names) else len(names) + gate_slot(i - len(old_names))
+    const = names.index("const0")
+    layers = []
+    for depth, layer in enumerate(circuit["layers"]):
+        inputs, tables = [[const, const] for _ in range(config.width)], [[0, 0, 0, 0] for _ in range(config.width)]
+        last = depth == config.layers - 1
+        for i, (wires, table) in enumerate(zip(layer["inputs"], layer["truth_tables"])):
+            inputs[gate_slot(i)], tables[gate_slot(i)] = [source(w) for w in wires], list(table)
+        if last:
+            for i in range(old.state_bits, config.state_bits):   # new state bits hold their value (0)
+                inputs[i], tables[i] = [names.index(f"state{i}"), const], [0, 0, 1, 1]
+            if config.rivals and not old.rivals:
+                # New rival registers start with the hand-written swap rule; the search takes it from there.
+                inputs[swap_slot(config)], tables[swap_slot(config)] = swap_rule(names)
+        layers.append({"inputs": inputs, "truth_tables": tables})
+    return {"format": circuit.get("format", "photon-stream-core-v1"), "config": asdict(config), "inputs": names,
+            "actions": list(ACTIONS) + ["swap"] * (config.rivals > 0), "layers": layers}
+
+
+def mutate(inputs, codes, count, kind, base_bits, generator):
+    """Return `count` copies of a circuit, each with one or two random edits.
+
+    inputs [layers, width, 2] and codes [layers, width] are a packed circuit (see
+    pack_circuit). The first edit is applied to every copy, a second to about 30% of them.
+    kind selects the mutation operator:
+      "table": flip one random bit of one gate's 4-bit truth table.
+      "prune": replace a gate by constant 0 or by a pass-through of input a or b (removes logic).
+      "wire":  rewire one input of a gate to a random source (base inputs, plus the
+               previous layer's outputs for layers after the first).
+    base_bits is the number of base inputs; generator is a torch.Generator.
+    """
+    device = inputs.device
+    inputs = inputs[None].repeat(count, 1, 1, 1)
+    codes = codes[None].repeat(count, 1, 1)
+    members = torch.arange(count, device=device)
+    layers, width = codes.shape[1:]
+    randint = lambda high, size=(count,): torch.randint(high, size, generator=generator, device=device)
+    for edit in range(2):
+        chosen = members if edit == 0 else members[torch.rand(count, generator=generator, device=device) < .3]
+        n = len(chosen)
+        layer, gate = randint(layers, (n,)), randint(width, (n,))
+        if kind == "table":
+            codes[chosen, layer, gate] ^= (1 << randint(4, (n,))).int()
+        elif kind == "prune":
+            # Remove logic: constant 0, or a plain wire from input a (code 12) or b (code 10).
+            options = torch.tensor([0, 12, 10], device=device, dtype=codes.dtype)
+            codes[chosen, layer, gate] = options[randint(3, (n,))]
+        else:
+            sources = base_bits + width*(layer > 0).long()
+            pick = (torch.rand(n, generator=generator, device=device) * sources).long()
+            inputs[chosen, layer, gate, randint(2, (n,))] = pick
+    return inputs, codes
+
+
+MISS = {"weight": 0., "bins": 9.}      # set once by main(); see --miss-weight
+
+
+def population_losses(config, inputs, codes, data, police=None, police_weight=0., delta=4., cap=0.):
+    """Huber loss after each member's own constant offset, plus police violations (no area)."""
+    photons, targets, evidence, *extra = data
+    prediction = simulate_population_packed(config, inputs, codes, photons).float() / config.scale
+    error = prediction - targets[None]
+    error = error - error.median(-1, keepdim=True).values
+    loss = robust_loss(error, delta, cap).mean(-1)
+    if MISS["weight"] and extra:
+        # Avoidable large misses: far off on a ray where a histogram of the same photons is not.
+        loss = loss + MISS["weight"] * ((error.abs() > MISS["bins"]) & extra[0][None]).float().mean(-1)
+    if police is not None and police_weight:
+        loss = loss + police_weight*police.violations(prediction, evidence)["physics"].float().mean(-1)
+    return loss
+
+
+def population_scores(config, inputs, codes, data, areas, area_weight, police=None, police_weight=0., area_model=None,
+                      delta=4., cap=0.):
+    """Huber loss after each member's own constant offset, plus area and police violations.
+
+    With an area model, area is the whole-core estimate in µm²; without, the old sum of
+    controller truth-table areas (`areas` is the 16-entry cost table indexed by code).
+    """
+    if area_model is not None:
+        return (population_losses(config, inputs, codes, data, police, police_weight, delta, cap)
+                + area_weight*area_model.estimate(config, inputs, codes))
+    loss = population_losses(config, inputs, codes, data, police, police_weight, delta, cap)
+    return loss + area_weight*areas[codes.long()].sum((1, 2)) if area_weight else loss
+
+
+def main():
+    """CLI entry point; see the module docstring for the phases and the options."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", type=Path, default=ROOT/"data")
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--init", choices=("random", "rule", "circuit"), default="random")
+    parser.add_argument("--init-circuit", type=Path, help="circuit.json to start from (with --init circuit)")
+    parser.add_argument("--objective", choices=("accuracy", "area"), default="accuracy",
+                        help="area: smallest whole-core area within --accuracy-tolerance of the start")
+    parser.add_argument("--synth-candidates", type=int, default=3,
+                        help="area objective: smallest-estimated mutants synthesized with Yosys per generation; "
+                             "a change is accepted only if real synthesis confirms it is smaller (0 = model only)")
+    parser.add_argument("--synth-workers", type=int, default=3)
+    parser.add_argument("--accuracy-tolerance", type=float, default=.05,
+                        help="area objective: allowed relative increase in loss and validation MAE")
+    parser.add_argument("--area-model", type=Path, default=MODEL_PATH,
+                        help="fitted whole-core area model; 'none' falls back to controller gates only")
+    parser.add_argument("--rule-window", type=int, default=8)
+    parser.add_argument("--min-photons", type=int, default=16, help="Per-sample photon count is log-uniform in [min, max]")
+    parser.add_argument("--max-photons", type=int, default=256)
+    parser.add_argument("--max-background", type=float, default=.6,
+                        help="Per-sample probability, uniform in [0, this], that a photon is replaced by ambient")
+    parser.add_argument("--police-weight", type=float, default=1., help="Gradient hinge weight (bins); 0 disables")
+    parser.add_argument("--police-search-weight", type=float, default=4.,
+                        help="Hard-search penalty per unit violation rate; 0 disables")
+    parser.add_argument("--embed", action="store_true",
+                        help="with --init circuit: keep this command's core shape and place the circuit inside it "
+                             "(same behaviour; extra gates, state and sub-bin steps start unused)")
+    parser.add_argument("--frac-bits", type=int, default=0,
+                        help="fractional candidate bits: range resolution of 1/2**this of a time bin")
+    parser.add_argument("--step-bits", type=int, default=0,
+                        help="learned step-size select outputs: a step moves 2**-select bins")
+    parser.add_argument("--conf-bits", type=int, default=4)
+    parser.add_argument("--conf-levels", type=int, nargs="+", default=[2, 4, 8])
+    parser.add_argument("--state-bits", type=int, default=4)
+    parser.add_argument("--width", type=int, default=16)
+    parser.add_argument("--layers", type=int, default=3)
+    parser.add_argument("--steps", type=int, default=1500)
+    parser.add_argument("--batch-size", type=int, default=256)
+    parser.add_argument("--weight-lr", type=float, default=0.01)
+    parser.add_argument("--architecture-lr", type=float, default=0.01)
+    parser.add_argument("--start-temperature", type=float, default=2.)
+    parser.add_argument("--end-temperature", type=float, default=.15)
+    parser.add_argument("--sharpness", type=float, default=4.)
+    parser.add_argument("--area-weight", type=float, default=0.002,
+                        help="gradient phase: loss per unit of controller gate area. Search: loss per µm² of "
+                             "whole-core area when an area model is loaded")
+    parser.add_argument("--search-area-weight", type=float, default=0.05,
+                        help="accuracy objective search: loss (bins) per µm² of estimated whole-core area")
+    parser.add_argument("--harden-after", type=float, default=0.3)
+    parser.add_argument("--eval-every", type=int, default=100)
+    parser.add_argument("--rollback-factor", type=float, default=1.25,
+                        help="Restore the best gradient state when hard MAE exceeds best times this; 0 disables")
+    parser.add_argument("--generations", type=int, default=1000)
+    parser.add_argument("--patience", type=int, default=0,
+                        help="accuracy search: stop once the selection score has not improved by 0.0005 m for "
+                             "this many generations, so --generations is only an upper limit (0 = always run it all)")
+    parser.add_argument("--min-generations", type=int, default=0, help="never stop for --patience before this")
+    parser.add_argument("--give-up-after", type=int, default=0,
+                        help="accuracy search: stop at this generation if the selection score is still above "
+                             "--give-up-score, so a start that never comes alive does not use the whole budget")
+    parser.add_argument("--give-up-score", type=float, default=1., help="selection score in metres")
+    parser.add_argument("--population", type=int, default=128)
+    parser.add_argument("--search-rays", type=int, default=1024)
+    parser.add_argument("--validate-every", type=int, default=20)
+    parser.add_argument("--loss-delta", type=float, default=4., help="Huber delta in bins (gradient and search)")
+    parser.add_argument("--loss-cap", type=float, default=0.,
+                        help="limit each ray's loss to this value (0 = no limit): gross errors stop dominating")
+    parser.add_argument("--select", choices=("mae", "capped"), default="mae",
+                        help="validation score that picks the circuit: plain mean error, or mean error with "
+                             "each pixel limited to --select-cap-bins")
+    parser.add_argument("--select-cap-bins", type=float, default=9., help="about 1 m")
+    parser.add_argument("--guard-mae", type=float, default=0.,
+                        help="also keep, as circuit_guarded.json, the best-scoring circuit whose plain validation "
+                             "mean error is at most this (m): a winner that is not worse on the plain mean either")
+    parser.add_argument("--windows", type=window_value, nargs="+", default=[1, 2, 4, 8, 16],
+                        help="distance flags the comparator gives the controller: photon within this many bins. "
+                             "Any value that is a whole number of 1/2**frac-bits bins, e.g. 0.25 0.5 1 2 3 4 6 8 12 16")
+    parser.add_argument("--rivals", type=int, default=0,
+                        help="extra position registers with vote counters (14 bits each): memory of where else "
+                             "photons cluster, plus a swap action. Search only: use with --steps 0")
+    parser.add_argument("--rival-track", choices=("off", "step", "half"), default="off",
+                        help="a register that gets a vote also moves toward the photon (one bin, or half the gap), "
+                             "so it tracks its cluster's centre. No extra memory bits")
+    parser.add_argument("--coincidence-depth", type=int, default=0,
+                        help="coincidence gate on far jumps: a FIFO of this many raw arrivals; after the first "
+                             "acquisition a replace outside near16 needs the photon within --coincidence-window "
+                             "bins of a FIFO entry. Adds the controller input coinc. 0 = off. Use with --steps 0")
+    parser.add_argument("--coincidence-window", type=int, default=8)
+    parser.add_argument("--challenge-cap", type=int, default=0,
+                        help="challenge rule (needs --coincidence-depth): a far replace needs 1 + FIFO matches to exceed "
+                             "min(confidence, cap), and loads that count into the confidence counter; 0 = off")
+    parser.add_argument("--track", choices=("step", "prop"), default="step",
+                        help="prop: up/down move by |distance| >> (select + 1), a running mean")
+    parser.add_argument("--random-delay", action="store_true",
+                        help="search: delay each ray's photons (and its target) by a random whole number of bins, "
+                             "wrapping around, so a circuit cannot learn where in the time window targets usually sit")
+    parser.add_argument("--miss-weight", type=float, default=0.,
+                        help="search loss per unit share of avoidable large misses: rays where the circuit is "
+                             "more than --miss-bins off but a sub-bin histogram fit of the same photons is not")
+    parser.add_argument("--miss-bins", type=float, default=9., help="about 1 m")
+    parser.add_argument("--hard-fraction", type=float, default=0.,
+                        help="share of each search sample drawn from hard conditions: at most "
+                             "--hard-max-photons photons and at least --hard-min-background extra ambient")
+    parser.add_argument("--hard-max-photons", type=int, default=32)
+    parser.add_argument("--hard-min-background", type=float, default=.4)
+    parser.add_argument("--guard-circuit", type=Path,
+                        help="set --guard-mae to this circuit's plain mean error on the run's own validation photons")
+    parser.add_argument("--confirm-accept", action="store_true",
+                        help="accuracy search: a winning mutant must also beat the current circuit on fresh "
+                             "pixels from the other design split, so fewer changes are sampling luck")
+    parser.add_argument("--photon-sets", type=int, default=3)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--threads", type=int, default=2)
+    parser.add_argument("--compile", choices=("none", "default", "reduce-overhead"), default="none",
+                        help="torch.compile the per-photon gradient step; pick with bench_stream on the target device")
+    parser.add_argument("--compile-search", choices=("none", "default", "reduce-overhead"), default="default",
+                        help="torch.compile the exact search's per-photon step (identical results)")
+    parser.add_argument("--resume", action="store_true", help="Continue from state.pt in --out if present")
+    parser.add_argument("--max-seconds", type=float, default=0, help="Save and stop after this long (0 = no limit)")
+    args = parser.parse_args()
+    device = torch.device(args.device)
+    torch.set_num_threads(args.threads)
+    torch.manual_seed(args.seed)
+    args.out.mkdir(parents=True, exist_ok=True)
+    state_path, log_path = args.out/"state.pt", args.out/"history.jsonl"
+    costs = json.loads((args.data/"asap7/costs.json").read_text())["truth_table_costs"]
+    areas = torch.tensor([x["area"] for x in costs], device=device)
+    train = [x.to(device) for x in load_rays(args.data, "train", clean_only=True)[:2]]
+    routing = [x.to(device) for x in load_rays(args.data, "architecture", clean_only=True)[:2]]
+    validation = [x.to(device) for x in load_rays(args.data, "validation")[:2]]
+    conditions = (args.min_photons, args.max_photons, args.max_background)
+    pulse, zero = measure_pulse(train[0].cpu())   # label-free return shape from training histograms
+    police = Police(pulse, zero).to(device) if (args.police_weight or args.police_search_weight) else None
+    validator = Validator(train, validation, conditions, args.photon_sets, Police(pulse, zero).to(device),
+                          cap_bins=args.select_cap_bins)
+    select_key = "mae_m" if args.select == "mae" else "capped_m"
+    if args.guard_circuit:
+        args.guard_mae = validator(json.loads(args.guard_circuit.read_text()))["mae_m"]
+        print(f"guard: plain validation mean error at most {args.guard_mae:.4f} m", flush=True)
+    generator = torch.Generator(device=device).manual_seed(args.seed)
+    start_circuit = None
+    shape = dict(state_bits=args.state_bits, width=args.width, layers=args.layers, frac_bits=args.frac_bits,
+                 step_bits=args.step_bits, conf_bits=args.conf_bits, conf_levels=tuple(args.conf_levels),
+                 windows=tuple(args.windows), rivals=args.rivals, rival_track=args.rival_track,
+                 coincidence_depth=args.coincidence_depth, coincidence_window=args.coincidence_window,
+                 challenge_cap=args.challenge_cap, track=args.track)
+    if args.rival_track != "off" and not args.rivals:
+        raise ValueError("--rival-track needs --rivals")
+    if args.rivals and args.steps:
+        raise ValueError("Rival registers have no gradient model: use --steps 0")
+    if args.coincidence_depth and args.steps:
+        raise ValueError("The coincidence gate has no gradient model: use --steps 0")
+    if args.track != "step" and args.steps:
+        raise ValueError("Proportional tracking has no gradient model: use --steps 0")
+    MISS.update(weight=args.miss_weight, bins=args.miss_bins)
+    if args.init == "circuit":
+        start_circuit = json.loads(args.init_circuit.read_text())
+        if args.embed:
+            start_circuit = embed_circuit(start_circuit, StreamConfig(**shape))
+        else:
+            shape = {k: start_circuit["config"].get(k, v) for k, v in shape.items()}
+    config = StreamConfig(**shape)
+    area_model = None if str(args.area_model) == "none" else AreaModel(args.area_model, device)
+    if area_model is not None and asdict(config) != asdict(StreamConfig(state_bits=config.state_bits, width=config.width,
+                                                                        layers=config.layers)):
+        # The whole-core model was fitted to the original datapath only.
+        print("area model does not cover this datapath; the search penalizes controller gate area instead", flush=True)
+        area_model = None
+    if args.objective == "area" and area_model is None:
+        raise ValueError("The area objective needs an area model")
+    synthesized_areas = {}
+
+    def real_area(circuits):
+        """Yosys + ASAP7 area of each circuit (cached), synthesized in parallel; None without Yosys."""
+        from concurrent.futures import ThreadPoolExecutor
+        from asic.synthesis.synth import synthesize
+        from asic.synthesis.verilog import stream_verilog
+        keys = [json.dumps(c["layers"], separators=(",", ":")) for c in circuits]
+        todo = {k: c for k, c in zip(keys, circuits) if k not in synthesized_areas}
+        work = lambda c: synthesize(stream_verilog(c), "photon_core", args.data)["area"] or 0.
+        with ThreadPoolExecutor(max(1, args.synth_workers)) as pool:
+            for key, area in zip(todo, pool.map(work, todo.values())):
+                synthesized_areas[key] = area
+        return [synthesized_areas[k] for k in keys]
+
+    confirm = args.objective == "area" and args.synth_candidates > 0
+    if confirm:
+        try:
+            real_area([rule_circuit(config)])
+        except Exception as error:
+            print(f"Yosys not available ({type(error).__name__}); area decisions use the fitted model only", flush=True)
+            confirm = False
+    circuit_area = (lambda c: real_area([c])[0]) if confirm else (
+        lambda c: area_model.circuit_area(c) if area_model is not None else None)
+    model = StreamCore(config).to(device).set_compile(None if args.compile == "none" else args.compile)
+    set_search_compile(None if args.compile_search == "none" else args.compile_search)
+    if args.init == "rule":
+        model.load_circuit(rule_circuit(config, args.rule_window), args.sharpness)
+    elif start_circuit is not None:
+        model.load_circuit(start_circuit, args.sharpness)
+    weights, architecture = model.weight_parameters(), model.architecture_parameters()
+    weight_optimizer = torch.optim.Adam(weights, lr=args.weight_lr)
+    architecture_optimizer = torch.optim.Adam(architecture, lr=args.architecture_lr)
+    snapshot = lambda: {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+    run = {"step": 0, "generation": 0, "best_circuit": model.circuit(), "best_mae": None,
+           "search_circuit": None, "gradient_mae": None, "elapsed": 0., "best_model": snapshot(),
+           "rollbacks": 0, "anchor_mae": None, "best_area": None}
+    resumed = args.resume and state_path.exists()
+    if resumed:
+        saved = torch.load(state_path, map_location="cpu", weights_only=False)
+        # Filled with today's defaults, so a state saved before a new option existed still matches.
+        if asdict(StreamConfig(**saved["config"])) != asdict(config) or saved.get("conditions") != list(conditions):
+            raise ValueError("Saved state uses a different configuration or photon conditions")
+        model.load_state_dict(saved["model"])
+        weight_optimizer.load_state_dict(saved["weight_optimizer"])
+        architecture_optimizer.load_state_dict(saved["architecture_optimizer"])
+        generator.set_state(saved["generator"].cpu())
+        run = saved["run"]
+    else:
+        log_path.write_text("")
+    started = time.monotonic()
+    elapsed = lambda: run["elapsed"] + time.monotonic() - started
+
+    def log(row):
+        row["elapsed_seconds"] = round(elapsed(), 1)
+        with log_path.open("a") as handle:
+            handle.write(json.dumps(row)+"\n")
+        print(row, flush=True)
+
+    def save():
+        payload = {"config": asdict(config), "conditions": list(conditions), "model": model.state_dict(),
+                   "weight_optimizer": weight_optimizer.state_dict(),
+                   "architecture_optimizer": architecture_optimizer.state_dict(),
+                   "generator": generator.get_state(), "run": {**run, "elapsed": elapsed()}}
+        temporary = state_path.with_suffix(".tmp")
+        torch.save(payload, temporary)
+        os.replace(temporary, state_path)
+
+    def out_of_time():
+        if args.max_seconds and time.monotonic() - started > args.max_seconds:
+            save()
+            print(f"Paused at step {run['step']}, generation {run['generation']}; rerun with --resume", flush=True)
+            sys.exit(0)
+
+    def consider(circuit, row):
+        scores = validator(circuit)
+        mae = scores[select_key]            # the selection score; plain mean error by default
+        area = circuit_area(circuit)
+        if args.objective == "area" and run["anchor_mae"] is not None:
+            # Smallest circuit whose validation error stays within tolerance of the start.
+            allowed = mae <= run["anchor_mae"]*(1 + args.accuracy_tolerance)
+            if allowed and (area < run["best_area"] or (area == run["best_area"] and mae < run["best_mae"])):
+                run["best_circuit"], run["best_mae"], run["best_area"] = circuit, mae, area
+        elif run["best_mae"] is None or mae < run["best_mae"]:
+            if run["best_mae"] is None or mae < run.get("patience_score", float("inf")) - .0005:
+                run["patience_score"], run["improved_at"] = mae, row.get("generation", 0)
+            run["best_circuit"], run["best_mae"], run["best_area"] = circuit, mae, area
+            if row["phase"] != "hard":
+                run["best_model"] = snapshot()
+        if run.get("mean_score") is None or scores["mae_m"] < run["mean_score"]:
+            run["mean_circuit"], run["mean_score"] = circuit, scores["mae_m"]     # best by plain mean error
+        if args.guard_mae and scores["mae_m"] <= args.guard_mae and (
+                run.get("guarded_score") is None or mae < run["guarded_score"]):
+            run["guarded_circuit"], run["guarded_score"] = circuit, mae
+        log({**row, "validation_mae_m": scores["mae_m"], "validation_median_m": scores["median_m"],
+             "validation_within_1_bin": scores["recall_1_bins"], "validation_capped_m": scores["capped_m"],
+             "area_um2": area, "best": run["best_mae"],
+             "best_area_um2": run["best_area"]})
+        return mae
+
+    if not resumed:
+        consider(model.circuit(), {"phase": "start"})
+
+    def step_on(split, optimizer, active, frozen, temperature, ste):
+        """One gradient step on a fresh photon batch from `split`, updating only the `active` parameters."""
+        for p in frozen:
+            p.requires_grad_(False)
+        for p in active:
+            p.requires_grad_(True)
+        pick = torch.randint(len(split[1]), (args.batch_size,), generator=generator, device=device)
+        photons = sample_conditions(split[0][pick], *conditions, generator)[0]
+        prediction = model(photons, temperature=temperature, ste=ste)
+        loss = range_loss(prediction, split[1][pick], args.loss_delta, args.loss_cap)
+        if police is not None and args.police_weight:
+            loss = loss + args.police_weight*police.penalty(prediction, police.evidence(photons))
+        loss = loss + args.area_weight*expected_area(model, costs)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        norm = torch.nn.utils.clip_grad_norm_(active, 5.)
+        if not (torch.isfinite(loss) and torch.isfinite(norm)):
+            # One non-finite step turns every weight into NaN; skip it and count it.
+            optimizer.zero_grad(set_to_none=True)
+            run["skipped_steps"] = run.get("skipped_steps", 0) + 1
+            return float("nan")
+        optimizer.step()
+        return float(loss.detach())
+
+    while run["step"] < args.steps:
+        step = run["step"]
+        progress = step/max(args.steps-1, 1)    # 0 at the first step, 1 at the last
+        # Geometric schedule: temperature = start * (end/start) ** progress.
+        temperature = args.start_temperature*(args.end_temperature/args.start_temperature)**progress
+        ste = progress >= args.harden_after     # straight-through (hard forward, soft gradient) from here on
+        # Bilevel order: routing logits on the architecture split, then table logits on train.
+        step_on(routing, architecture_optimizer, architecture, weights, temperature, ste)
+        loss = step_on(train, weight_optimizer, weights, architecture, temperature, ste)
+        run["step"] += 1
+        if run["step"] % args.eval_every == 0 or run["step"] == args.steps:
+            with torch.no_grad():
+                sample = validator.photons[:2000]
+                soft = metrics(model(sample, temperature=temperature), validator.targets[:2000])["mae_m"]
+            mae = consider(model.circuit(), {"phase": "gradient", "step": run["step"], "loss": loss,
+                                             "temperature": temperature, "straight_through": ste, "soft_mae_m": soft})
+            # Non-finite weights, or (once hardened) validation error above rollback_factor
+            # times the best, restore the best gradient state. Adam moments are cleared
+            # because they point along the path that fell off the cliff.
+            broken = not all(torch.isfinite(p).all() for p in model.parameters())
+            if broken or (ste and args.rollback_factor and mae > args.rollback_factor*run["best_mae"]):
+                # Hardened search can fall off a cliff that gradients cannot climb back up.
+                model.load_state_dict(run["best_model"])
+                weight_optimizer.state.clear()
+                architecture_optimizer.state.clear()
+                run["rollbacks"] += 1
+            save()
+            out_of_time()
+    if run["gradient_mae"] is None:
+        run["gradient_mae"] = run["best_mae"]
+
+    if args.generations:
+        template = run["best_circuit"]
+        current = pack_circuit(run["search_circuit"] or template, device)
+        base_bits = len(input_names(config))
+        # Accuracy objective: population//2 table mutants and population//2 wire mutants
+        # per generation. Area objective: population//3 each of table, wire and prune.
+        half = max(args.population//2, 2)
+        if args.objective == "area" and run["anchor_mae"] is None:
+            run["anchor_mae"], run["best_area"] = run["best_mae"], circuit_area(template)
+            run["anchor"] = template
+            print(f"area objective: start at {run['best_area']:.2f} µm² "
+                  f"({'synthesized' if confirm else 'estimated'}), validation MAE "
+                  f"{run['anchor_mae']:.3f} m; keeping MAE within {args.accuracy_tolerance:.0%}", flush=True)
+        anchor = pack_circuit(run.get("anchor") or template, device)
+        third = max(args.population//3, 3)
+        hard_rays = int(args.hard_fraction * args.search_rays)
+        fit_pulse = pulse.to(device)
+
+        def batch(split):
+            pick = torch.randint(len(split[1]), (args.search_rays,), generator=generator, device=device)
+            photons = sample_conditions(split[0][pick], *conditions, generator)[0]
+            if hard_rays:
+                # Few photons and heavy background, where most avoidable large misses happen.
+                hard = sample_conditions(split[0][pick[:hard_rays]], args.min_photons, args.hard_max_photons,
+                                         args.max_background, generator, min_background=args.hard_min_background)[0]
+                photons[:hard_rays] = -1
+                photons[:hard_rays, :hard.shape[1]] = hard
+            targets = split[1][pick]
+            if args.random_delay:
+                room = (640 - targets).clamp(min=0)
+                delay = (torch.rand(len(targets), generator=generator, device=device) * (room + 1)).floor().long()
+                photons = torch.where(photons >= 0, (photons + delay[:, None]) % 672, photons)
+                targets = targets + delay
+            data = [photons, targets, police.evidence(photons) if police is not None else None]
+            if args.miss_weight:
+                gap = subbin_fit(photon_histogram(photons), fit_pulse, zero) - targets
+                data.append((gap - gap.median()).abs() <= args.miss_bins)
+            return tuple(data)
+        current_area = circuit_area(unpack_circuit(template, *current)) if args.objective == "area" else None
+        # Area objective (--objective area): shrink the circuit while keeping error within
+        # --accuracy-tolerance of the start. Skipped entirely for the accuracy objective.
+        while args.objective == "area" and run["generation"] < args.generations:
+            # Each mutant kind is scored on its own pixels, always next to the start circuit (member 1),
+            # so the error budget is measured on the same photons as the mutants.
+            candidates = []
+            for kind, split in (("table", train), ("wire", routing), ("prune", train)):
+                inputs, codes = mutate(*current, third, kind, base_bits, generator)
+                inputs[0], codes[0] = current
+                inputs[1], codes[1] = anchor
+                losses = population_losses(config, inputs, codes, batch(split), police, args.police_search_weight)
+                estimate = area_model.estimate(config, inputs, codes)
+                feasible = losses <= losses[1]*(1 + args.accuracy_tolerance)
+                feasible[:2] = False
+                for i in torch.nonzero(feasible).flatten().tolist():
+                    candidates.append((float(estimate[i]), float(losses[i]), inputs[i], codes[i]))
+            candidates.sort(key=lambda x: (x[0], x[1]))
+
+            def holds_up(choice):
+                # Picking the smallest of many mutants that passed on one sample favours ones that got
+                # lucky on it, so the winner must also pass on fresh pixels from both design splits.
+                for split in (train, routing):
+                    pair = (torch.stack((anchor[0], choice[0])), torch.stack((anchor[1], choice[1])))
+                    check = population_losses(config, *pair, batch(split), police, args.police_search_weight)
+                    if check[1] > check[0]*(1 + args.accuracy_tolerance):
+                        return False
+                return True
+
+            if candidates and confirm:
+                # The fitted model proposes, real synthesis decides.
+                shortlist = candidates[:args.synth_candidates]
+                areas_real = real_area([unpack_circuit(template, x[2], x[3]) for x in shortlist])
+                for i in sorted(range(len(shortlist)), key=lambda i: (areas_real[i], shortlist[i][1])):
+                    if areas_real[i] > current_area:
+                        break
+                    if holds_up((shortlist[i][2], shortlist[i][3])):
+                        current, current_area = (shortlist[i][2], shortlist[i][3]), areas_real[i]
+                        break
+            elif candidates and candidates[0][0] <= current_area and holds_up((candidates[0][2], candidates[0][3])):
+                current, current_area = (candidates[0][2], candidates[0][3]), candidates[0][0]
+            run["generation"] += 1
+            run["search_circuit"] = unpack_circuit(template, *current)
+            if run["generation"] % args.validate_every == 0 or run["generation"] == args.generations:
+                consider(run["search_circuit"], {"phase": "hard", "generation": run["generation"],
+                                                 "search_area_um2": current_area})
+                save()
+                out_of_time()
+        while run["generation"] < args.generations and not run.get("stopped"):
+            deltas, members = [], []
+            for kind, split in (("table", train), ("wire", routing)):
+                inputs, codes = mutate(*current, half, kind, base_bits, generator)
+                inputs[0], codes[0] = current   # member 0 is the unmutated reference
+                scores = population_scores(config, inputs, codes, batch(split), areas,
+                                           args.search_area_weight if area_model is not None else args.area_weight,
+                                           police, args.police_search_weight, area_model, args.loss_delta, args.loss_cap)
+                delta = scores - scores[0]
+                delta[0] = float("inf")
+                best = int(delta.argmin())
+                deltas.append(float(delta[best]))
+                members.append((inputs[best], codes[best]))
+            # deltas are (best mutant score - unmutated current score); lower is better.
+            # Accept the best mutant only if it is no worse than the current circuit.
+            winner = 0 if deltas[0] <= deltas[1] else 1
+            accept = deltas[winner] <= 0
+            if accept and args.confirm_accept:
+                pair = (torch.stack((current[0], members[winner][0])), torch.stack((current[1], members[winner][1])))
+                check = population_scores(config, *pair, batch(routing if winner == 0 else train), areas,
+                                          args.search_area_weight if area_model is not None else args.area_weight,
+                                          police, args.police_search_weight, area_model, args.loss_delta, args.loss_cap)
+                accept = bool(check[1] <= check[0])
+            if accept:
+                current = members[winner]
+            run["generation"] += 1
+            run["search_circuit"] = unpack_circuit(template, *current)
+            if run["generation"] % args.validate_every == 0 or run["generation"] == args.generations:
+                consider(run["search_circuit"], {"phase": "hard", "generation": run["generation"]})
+                generation = run["generation"]
+                if args.give_up_after and generation >= args.give_up_after and run["best_mae"] > args.give_up_score:
+                    run["stopped"] = f"gave up at generation {generation}: score still above {args.give_up_score} m"
+                elif args.patience and generation >= args.min_generations \
+                        and generation - run.get("improved_at", 0) >= args.patience:
+                    run["stopped"] = f"no improvement for {args.patience} generations at generation {generation}"
+                save()
+                if run.get("stopped"):
+                    print(run["stopped"], flush=True)
+                    break
+                out_of_time()
+
+    circuit = dict(run["best_circuit"])
+    circuit["offset_bins"] = validator.offset(circuit)
+    circuit["budget"] = args.max_photons
+    circuit["conditions"] = {"min_photons": args.min_photons, "max_photons": args.max_photons,
+                             "max_background": args.max_background}
+    fresh_validator = Validator(train, validation, conditions, args.photon_sets, validator.police, seed=1234,
+                                cap_bins=args.select_cap_bins)
+    audit = fresh_validator.audit(circuit)
+    report = audit["overall"]
+    (args.out/"circuit.json").write_text(json.dumps(circuit)+"\n")
+    if run.get("mean_circuit"):
+        by_mean = dict(run["mean_circuit"])
+        by_mean.update(offset_bins=validator.offset(by_mean), budget=args.max_photons, conditions=circuit["conditions"])
+        (args.out/"circuit_best_mean.json").write_text(json.dumps(by_mean)+"\n")
+    guarded = None
+    if run.get("guarded_circuit"):
+        guarded = dict(run["guarded_circuit"])
+        guarded.update(offset_bins=validator.offset(guarded), budget=args.max_photons, conditions=circuit["conditions"])
+        (args.out/"circuit_guarded.json").write_text(json.dumps(guarded)+"\n")
+    summary = {"arguments": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+               "config": asdict(config), "gradient_best_validation_mae_m": run["gradient_mae"], "rollbacks": run["rollbacks"],
+               "selection_validation_mae_m": run["best_mae"], "selection_metric": select_key,
+               "validation_fresh_photons": report,
+               "skipped_nonfinite_steps": run.get("skipped_steps", 0),
+               "objective": args.objective, "area_um2": run["best_area"],
+               "generations_run": run["generation"], "stopped_early": run.get("stopped"),
+               "start_area_um2": circuit_area(run["anchor"]) if run.get("anchor") else None,
+               "area_source": "yosys" if confirm else "fitted model",
+               "start_validation_mae_m": run["anchor_mae"],
+               "guarded": None if guarded is None else {"selection_score": run["guarded_score"],
+                                                        "validation_fresh_photons": fresh_validator(guarded)},
+               "audit_fresh_photons": audit, "pulse": pulse.tolist(), "seconds": elapsed()}
+    try:   # real synthesized area when Yosys is installed (locally; usually not on Kaggle)
+        from asic.synthesis.synth import synthesize
+        from asic.synthesis.verilog import stream_verilog
+        synthesized = synthesize(stream_verilog(circuit), "photon_core", args.data)
+        summary["synthesized"] = {k: v for k, v in synthesized.items() if k != "report"}
+    except Exception as error:
+        summary["synthesized"] = f"not available: {type(error).__name__}"
+    (args.out/"summary.json").write_text(json.dumps(summary, indent=2)+"\n")
+    save()
+    print(json.dumps(report), flush=True)
+
+
+if __name__ == "__main__":
+    main()
