@@ -1,0 +1,9 @@
+job,mean_error_m,median_error_m,within_3_bins_pct,physics_check_flags_pct,offset_bins_16_32_to_128_256_photons,logic_area_um2,cells,critical_path_ps
+random-s4-seed0 (chosen),0.363,0.151,76.2,4.9,+0.1 -> +0.6,26.8,295,978
+rule-s4-seed1,0.373,0.153,75.2,5.8,+0.1 -> +0.4,25.7,272,938
+rule-s4-seed0,0.376,0.16,76.9,2.2,+0.1 -> +0.4,25.9,270,976
+rule-s4-seed0-nopolice,0.38,0.187,72.2,7.7,-0.5 -> +0.9,26.2,269,915
+random-s4-seed0-nopolice,0.39,0.182,71.2,10.6,-0.4 -> +0.9,26.7,273,753
+random-s2-seed0,0.473,0.186,71.9,7.2,+0.6 -> +0.4,22.8,238,803
+random-s4-seed1,0.478,0.196,70.3,8.8,+0.5 -> +0.6,26.7,275,729
+rule-s0-seed0,0.537,0.143,76.2,3.7,-0.3 -> +0.5,22.5,235,970

@@ -1,0 +1,67 @@
+Found gzip magic in file `/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_AO_RVT_FF_nldm_211120.lib.gz', decompressing using zlib.
+Found gzip magic in file `/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_INVBUF_RVT_FF_nldm_220122.lib.gz', decompressing using zlib.
+Found gzip magic in file `/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_OA_RVT_FF_nldm_211120.lib.gz', decompressing using zlib.
+Found gzip magic in file `/OpenROAD-flow-scripts/flow/platforms/asap7/lib/NLDM/asap7sc7p5t_SIMPLE_RVT_FF_nldm_211120.lib.gz', decompressing using zlib.
+
+23. Printing statistics.
+
+=== photon_core ===
+
+        +----------------------------Count including submodules.
+        |        +-------------------Area including submodules.
+        |        |        +----------Local count, excluding submodules.
+        |        |        |        +-Local area, excluding submodules.
+        |        |        |        | 
+     1141        -     1141        - wires
+     1162        -     1162        - wire bits
+       37        -       37        - public wires
+       58        -       58        - public wire bits
+        5        -        5        - ports
+       26        -       26        - port bits
+        -        -        -        - memories
+        -        -        -        - memory bits
+        -        -        -        - processes
+     1019  111.814     1019  111.814 cells
+       24      2.1       24      2.1   AND2x2_ASAP7_75t_R
+       29    2.537       29    2.537   AND3x1_ASAP7_75t_R
+        1    0.102        1    0.102   AND3x2_ASAP7_75t_R
+       17    1.735       17    1.735   AND4x1_ASAP7_75t_R
+       10    1.166       10    1.166   AND5x1_ASAP7_75t_R
+        1    0.233        1    0.233   AO211x2_ASAP7_75t_R
+       59    5.161       59    5.161   AO21x1_ASAP7_75t_R
+        7    1.021        7    1.021   AO221x1_ASAP7_75t_R
+        2    0.262        2    0.262   AO22x1_ASAP7_75t_R
+        2    0.467        2    0.467   AO31x2_ASAP7_75t_R
+        6      0.7        6      0.7   AO32x1_ASAP7_75t_R
+        2    0.292        2    0.292   AO33x2_ASAP7_75t_R
+        6     1.05        6     1.05   AOI211x1_ASAP7_75t_R
+       21    2.449       21    2.449   AOI21x1_ASAP7_75t_R
+        1    0.204        1    0.204   AOI221x1_ASAP7_75t_R
+        5    0.729        5    0.729   AOI22x1_ASAP7_75t_R
+       41    2.989       41    2.989   BUFx2_ASAP7_75t_R
+        3    0.437        3    0.437   BUFx6f_ASAP7_75t_R
+       66   19.246       66   19.246   DFFHQNx1_ASAP7_75t_R
+        8    1.633        8    1.633   FAx1_ASAP7_75t_R
+      122   16.009      122   16.009   HAxp5_ASAP7_75t_R
+      185    8.092      185    8.092   INVx1_ASAP7_75t_R
+        1    0.058        1    0.058   INVx2_ASAP7_75t_R
+       84    7.348       84    7.348   NAND2x1_ASAP7_75t_R
+        6    0.962        6    0.962   NAND3x1_ASAP7_75t_R
+       23    2.012       23    2.012   NOR2x1_ASAP7_75t_R
+        3    0.481        3    0.481   NOR3x1_ASAP7_75t_R
+       86   10.031       86   10.031   OA211x2_ASAP7_75t_R
+       74    7.552       74    7.552   OA21x2_ASAP7_75t_R
+        2    0.292        2    0.292   OA22x2_ASAP7_75t_R
+        2    0.437        2    0.437   OA31x2_ASAP7_75t_R
+        1    0.146        1    0.146   OA33x2_ASAP7_75t_R
+       17    1.983       17    1.983   OAI21x1_ASAP7_75t_R
+       21    1.837       21    1.837   OR2x2_ASAP7_75t_R
+       25    2.187       25    2.187   OR3x1_ASAP7_75t_R
+       16    1.633       16    1.633   OR4x1_ASAP7_75t_R
+        4    0.467        4    0.467   OR5x1_ASAP7_75t_R
+       30    4.811       30    4.811   XNOR2x2_ASAP7_75t_R
+        6    0.962        6    0.962   XOR2x2_ASAP7_75t_R
+
+   Chip area for module '\photon_core': 111.814020
+     of which used for sequential elements: 19.245600 (17.21%)
+

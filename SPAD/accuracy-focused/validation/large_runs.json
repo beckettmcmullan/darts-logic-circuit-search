@@ -1,0 +1,3770 @@
+{
+ "bin_m": 0.11242217175,
+ "note": "Kaggle 2x T4 evaluations of k4 + gate, 2026-11-18. Splits: train, architecture, validation (design recordings only; held-out recordings never loaded). 'Trusted' rays recorded at least 1,024 photons and their full-recording sub-bin fit is within 3 bins of the reference lidar label. Metrics: mae_m = mean error, recall_N_bins = share within N bins, over_1m = share more than 1 m off, moved_target_mae_m = mean error with every stream delayed by 300 bins.",
+ "runs": {
+  "v1-long-streams": {
+   "what": "rays with at least 4,096 recorded photons (at most 20,000 per split), 16 to 4,096 photons, 6 draws, target = reference lidar label",
+   "bands": {
+    "validation 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.2594220255966862,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.3223737619743465,
+      "recall_1_bins": 0.5990420522812144,
+      "recall_3_bins": 0.9344049358662121,
+      "over_1m": 0.014450397791849326,
+      "moved_target_mae_m": 0.19418561002013524
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.3936361990178914,
+      "median_m": 0.16248517010742186,
+      "recall_half_bin": 0.1797369702873843,
+      "recall_1_bins": 0.3532229257996428,
+      "recall_3_bins": 0.8310602370514694,
+      "over_1m": 0.025572333170969314,
+      "moved_target_mae_m": 0.7944029527538173
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.5874233086861713,
+      "median_m": 0.15018899507226563,
+      "recall_half_bin": 0.2040103912972885,
+      "recall_1_bins": 0.3948692969637928,
+      "recall_3_bins": 0.8165286572495535,
+      "over_1m": 0.027114791362234127,
+      "moved_target_mae_m": 0.4410544705904228
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.5166574244061548,
+      "median_m": 0.08519492702929687,
+      "recall_half_bin": 0.35046273745737944,
+      "recall_1_bins": 0.6093521675596688,
+      "recall_3_bins": 0.9058288683227796,
+      "over_1m": 0.024435785030037342,
+      "moved_target_mae_m": 0.3705857953167242
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.30492413575095173,
+      "median_m": 0.08519492702929687,
+      "recall_half_bin": 0.34640363695405096,
+      "recall_1_bins": 0.6113005358012664,
+      "recall_3_bins": 0.915570709530768,
+      "over_1m": 0.017941224224711803,
+      "moved_target_mae_m": 0.226401728572957
+     }
+    },
+    "validation 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.2207012097274327,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.3972235752557233,
+      "recall_1_bins": 0.6951615522000325,
+      "recall_3_bins": 0.9421172268225362,
+      "over_1m": 0.013882123721383342,
+      "moved_target_mae_m": 0.16321900172555237
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.29636506784657063,
+      "median_m": 0.14140601290429686,
+      "recall_half_bin": 0.20742003572008444,
+      "recall_1_bins": 0.4030686799805163,
+      "recall_3_bins": 0.8715700600746874,
+      "over_1m": 0.015424581912648156,
+      "moved_target_mae_m": 0.26603392887683663
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.30133371225279115,
+      "median_m": 0.11154387353320312,
+      "recall_half_bin": 0.27723656437733396,
+      "recall_1_bins": 0.5050332846241273,
+      "recall_3_bins": 0.896736483195324,
+      "over_1m": 0.015992855983114142,
+      "moved_target_mae_m": 0.25192183817623715
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.22751894609613965,
+      "median_m": 0.06587236625976563,
+      "recall_half_bin": 0.4374898522487417,
+      "recall_1_bins": 0.7262542620555285,
+      "recall_3_bins": 0.9411430427017373,
+      "over_1m": 0.01404448774151648,
+      "moved_target_mae_m": 0.17154965683808387
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.22194831768477957,
+      "median_m": 0.06587236625976563,
+      "recall_half_bin": 0.4370027601883423,
+      "recall_1_bins": 0.7266601721058613,
+      "recall_3_bins": 0.9412242247118039,
+      "over_1m": 0.013882123721383342,
+      "moved_target_mae_m": 0.15980973837177415
+     }
+    },
+    "validation 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.21056092024950687,
+      "median_m": 0.06411576982617187,
+      "recall_half_bin": 0.4499106997889268,
+      "recall_1_bins": 0.7582399740217568,
+      "recall_3_bins": 0.9430102289332684,
+      "over_1m": 0.013800941711316772,
+      "moved_target_mae_m": 0.15313995860394056
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.278932372616166,
+      "median_m": 0.12735324143554685,
+      "recall_half_bin": 0.22958272446825784,
+      "recall_1_bins": 0.4473940574768631,
+      "recall_3_bins": 0.8947069329436597,
+      "over_1m": 0.014531579801915896,
+      "moved_target_mae_m": 0.22121587750467608
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.2621300525440851,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.3053255398603669,
+      "recall_1_bins": 0.5572333170969314,
+      "recall_3_bins": 0.9227959084266927,
+      "over_1m": 0.013638577691183634,
+      "moved_target_mae_m": 0.23051402184484418
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.2010332190365548,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.525815879201169,
+      "recall_1_bins": 0.8149861990582887,
+      "recall_3_bins": 0.9447150511446664,
+      "over_1m": 0.012096119499918819,
+      "moved_target_mae_m": 0.14366788111478293
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.20123936618196067,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5245981490501704,
+      "recall_1_bins": 0.8159603831790875,
+      "recall_3_bins": 0.9441467770742004,
+      "over_1m": 0.012096119499918819,
+      "moved_target_mae_m": 0.14396666748827788
+     }
+    },
+    "validation 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.2045833804664733,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.48814742653028087,
+      "recall_1_bins": 0.7985874330248417,
+      "recall_3_bins": 0.9433349569735346,
+      "over_1m": 0.013232667640850787,
+      "moved_target_mae_m": 0.14713648237968188
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.2620885241687739,
+      "median_m": 0.11505706640039062,
+      "recall_half_bin": 0.26018834226335447,
+      "recall_1_bins": 0.4926124370839422,
+      "recall_3_bins": 0.9183308978730313,
+      "over_1m": 0.014856307842182172,
+      "moved_target_mae_m": 0.20426891968244643
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.24892328759147989,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.3050819938301672,
+      "recall_1_bins": 0.559181685338529,
+      "recall_3_bins": 0.9275856470206202,
+      "over_1m": 0.012745575580451371,
+      "moved_target_mae_m": 0.22487824637723391
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.1955311563902435,
+      "median_m": 0.050062998357421874,
+      "recall_half_bin": 0.5594252313687287,
+      "recall_1_bins": 0.855820750121773,
+      "recall_3_bins": 0.9443091410943335,
+      "over_1m": 0.011365481409319695,
+      "moved_target_mae_m": 0.13793016603373673
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.19547247726924452,
+      "median_m": 0.048306401923828124,
+      "recall_half_bin": 0.5604805974995941,
+      "recall_1_bins": 0.8584185744439032,
+      "recall_3_bins": 0.9443091410943335,
+      "over_1m": 0.01177139145965254,
+      "moved_target_mae_m": 0.13801276911653865
+     }
+    },
+    "validation 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.20164788306750467,
+      "median_m": 0.055332787658203125,
+      "recall_half_bin": 0.5071440168858581,
+      "recall_1_bins": 0.8224549439844131,
+      "recall_3_bins": 0.9434161389836012,
+      "over_1m": 0.01412566975158305,
+      "moved_target_mae_m": 0.14424304514861602
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.24831876237278896,
+      "median_m": 0.10100429493164062,
+      "recall_half_bin": 0.29566488066244523,
+      "recall_1_bins": 0.5502516642312064,
+      "recall_3_bins": 0.9304270173729502,
+      "over_1m": 0.013395031660983926,
+      "moved_target_mae_m": 0.19058307433818011
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.2537038178559676,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.30662445202143207,
+      "recall_1_bins": 0.560886507549927,
+      "recall_3_bins": 0.9262867348595551,
+      "over_1m": 0.014206851761649618,
+      "moved_target_mae_m": 0.22638401421156917
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.19435390602472985,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5715213508686475,
+      "recall_1_bins": 0.8534664718298425,
+      "recall_3_bins": 0.9443903231044001,
+      "over_1m": 0.011446663419386265,
+      "moved_target_mae_m": 0.13664080229580777
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.19412972218521463,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5754992693619094,
+      "recall_1_bins": 0.8570384802727715,
+      "recall_3_bins": 0.9443903231044001,
+      "over_1m": 0.012096119499918819,
+      "moved_target_mae_m": 0.13665550985212205
+     }
+    },
+    "validation 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.19980552674314014,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.524679331060237,
+      "recall_1_bins": 0.8356876116252638,
+      "recall_3_bins": 0.9427666829030686,
+      "over_1m": 0.014369215781782758,
+      "moved_target_mae_m": 0.14239221346457237
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.2388467828487368,
+      "median_m": 0.09397790919726562,
+      "recall_half_bin": 0.3075986361422309,
+      "recall_1_bins": 0.5862152946906966,
+      "recall_3_bins": 0.9383016723494074,
+      "over_1m": 0.013232667640850787,
+      "moved_target_mae_m": 0.1809274969858284
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.24699353351893324,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.3081669102126969,
+      "recall_1_bins": 0.5656762461438545,
+      "recall_3_bins": 0.9300211073226173,
+      "over_1m": 0.013963305731449912,
+      "moved_target_mae_m": 0.2245005336706181
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.19436415770863508,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5749309952914434,
+      "recall_1_bins": 0.8579314823835038,
+      "recall_3_bins": 0.9446338691345998,
+      "over_1m": 0.011365481409319695,
+      "moved_target_mae_m": 0.13664581503157247
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.19418839253272352,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5742003572008443,
+      "recall_1_bins": 0.8603669426855008,
+      "recall_3_bins": 0.9447150511446664,
+      "over_1m": 0.011690209449585971,
+      "moved_target_mae_m": 0.13670466979079773
+     }
+    },
+    "validation 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.1991562757690481,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5336093521675597,
+      "recall_1_bins": 0.8415327163500568,
+      "recall_3_bins": 0.9433349569735346,
+      "over_1m": 0.014612761811982464,
+      "moved_target_mae_m": 0.14176045569971493
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.23241158314657645,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.32732586458840723,
+      "recall_1_bins": 0.6153596363045949,
+      "recall_3_bins": 0.9425231368728689,
+      "over_1m": 0.013232667640850787,
+      "moved_target_mae_m": 0.17449025769556495
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.25344568962701275,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.2969637928235103,
+      "recall_1_bins": 0.5560967689559994,
+      "recall_3_bins": 0.9272609189803539,
+      "over_1m": 0.014856307842182172,
+      "moved_target_mae_m": 0.22896747674327955
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.19471060834895945,
+      "median_m": 0.048306401923828124,
+      "recall_half_bin": 0.5682740704659848,
+      "recall_1_bins": 0.8537100178600422,
+      "recall_3_bins": 0.9442279590842669,
+      "over_1m": 0.011284299399253125,
+      "moved_target_mae_m": 0.13693495621004428
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.19439632403889906,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5694918006169832,
+      "recall_1_bins": 0.8596363045949018,
+      "recall_3_bins": 0.9443903231044001,
+      "over_1m": 0.011690209449585971,
+      "moved_target_mae_m": 0.13687530465444442
+     }
+    },
+    "validation 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 12318,
+      "mae_m": 0.19876434095384624,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5383179087514207,
+      "recall_1_bins": 0.8448611787627862,
+      "recall_3_bins": 0.9430102289332684,
+      "over_1m": 0.014693943822049034,
+      "moved_target_mae_m": 0.1413654783281956
+     },
+     "histogram, tallest bar": {
+      "streams": 12318,
+      "mae_m": 0.22589821540780572,
+      "median_m": 0.08168173416210937,
+      "recall_half_bin": 0.35224874167884396,
+      "recall_1_bins": 0.6507549926936191,
+      "recall_3_bins": 0.9437408670238675,
+      "over_1m": 0.01307030362071765,
+      "moved_target_mae_m": 0.16794222412032747
+     },
+     "area-optimized circuit": {
+      "streams": 12318,
+      "mae_m": 0.2506418211435314,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.3075174541321643,
+      "recall_1_bins": 0.5677057963955188,
+      "recall_3_bins": 0.9275856470206202,
+      "over_1m": 0.013719759701250204,
+      "moved_target_mae_m": 0.2240970530487749
+     },
+     "k4 (no gate)": {
+      "streams": 12318,
+      "mae_m": 0.19439116369484855,
+      "median_m": 0.048306401923828124,
+      "recall_half_bin": 0.5706283487579152,
+      "recall_1_bins": 0.8629647670076311,
+      "recall_3_bins": 0.9431725929534015,
+      "over_1m": 0.012014937489852249,
+      "moved_target_mae_m": 0.13660945624836796
+     },
+     "k4 + gate": {
+      "streams": 12318,
+      "mae_m": 0.19403720935304986,
+      "median_m": 0.048306401923828124,
+      "recall_half_bin": 0.572576716999513,
+      "recall_1_bins": 0.8671862315310928,
+      "recall_3_bins": 0.9431725929534015,
+      "over_1m": 0.012258483520051957,
+      "moved_target_mae_m": 0.13652703438237623
+     }
+    },
+    "architecture 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.13256008732768573,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.3561775573214557,
+      "recall_1_bins": 0.6322400499401056,
+      "recall_3_bins": 0.9651515918408665,
+      "over_1m": 0.0015521924718665113,
+      "moved_target_mae_m": 0.1259746383181087
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.2566403809438455,
+      "median_m": 0.14491920577148437,
+      "recall_half_bin": 0.2058257832666903,
+      "recall_1_bins": 0.400296941168531,
+      "recall_3_bins": 0.8652207656358084,
+      "over_1m": 0.009060079971655616,
+      "moved_target_mae_m": 0.6412860442141745
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.44452656167657273,
+      "median_m": 0.13437962716992186,
+      "recall_half_bin": 0.22706719981103743,
+      "recall_1_bins": 0.4295439591031027,
+      "recall_3_bins": 0.8684432521806617,
+      "over_1m": 0.01414688464847902,
+      "moved_target_mae_m": 0.3522242987015808
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.40239737407622156,
+      "median_m": 0.09397790919726562,
+      "recall_half_bin": 0.31664726426076834,
+      "recall_1_bins": 0.5691653591132257,
+      "recall_3_bins": 0.9340065124597189,
+      "over_1m": 0.0096843312918628,
+      "moved_target_mae_m": 0.29654466901673765
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.1914180611375487,
+      "median_m": 0.09573450563085938,
+      "recall_half_bin": 0.31270773228054194,
+      "recall_1_bins": 0.5656729260515261,
+      "recall_3_bins": 0.9401646673752763,
+      "over_1m": 0.0037539437498945523,
+      "moved_target_mae_m": 0.1690874752944306
+     }
+    },
+    "architecture 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.10480864663401328,
+      "median_m": 0.06938555912695313,
+      "recall_half_bin": 0.41732887921580536,
+      "recall_1_bins": 0.7207065850078453,
+      "recall_3_bins": 0.9771051610399689,
+      "over_1m": 0.001155708525248435,
+      "moved_target_mae_m": 0.102584945070764
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.1775483667114834,
+      "median_m": 0.1255966450019531,
+      "recall_half_bin": 0.2338327343894991,
+      "recall_1_bins": 0.45250628469234533,
+      "recall_3_bins": 0.9022793609016214,
+      "over_1m": 0.0017124732162440317,
+      "moved_target_mae_m": 0.19896929852131018
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.17257582797191073,
+      "median_m": 0.10627408423242186,
+      "recall_half_bin": 0.2817313694724233,
+      "recall_1_bins": 0.5225152266707158,
+      "recall_3_bins": 0.9383172209006091,
+      "over_1m": 0.003382767289230821,
+      "moved_target_mae_m": 0.18392897744845546
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.13210893275381574,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.40389060417404804,
+      "recall_1_bins": 0.6983769465674613,
+      "recall_3_bins": 0.973418703919286,
+      "over_1m": 0.0018474464746672066,
+      "moved_target_mae_m": 0.1226844299602881
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.11265038094314164,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.3958512594692177,
+      "recall_1_bins": 0.6908690590676723,
+      "recall_3_bins": 0.97390798198107,
+      "over_1m": 0.0014003475561404396,
+      "moved_target_mae_m": 0.11047077693136159
+     }
+    },
+    "architecture 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.09507938794198012,
+      "median_m": 0.06060257695898437,
+      "recall_half_bin": 0.4641983432032529,
+      "recall_1_bins": 0.7752948322113681,
+      "recall_3_bins": 0.9789863508292419,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.09288870811586436
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.15642649881536896,
+      "median_m": 0.11154387353320312,
+      "recall_half_bin": 0.2644210490796511,
+      "recall_1_bins": 0.5031549999156417,
+      "recall_3_bins": 0.9279158441733731,
+      "over_1m": 0.0014003475561404396,
+      "moved_target_mae_m": 0.15422976279981906
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.14431213907831564,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.2900237890367971,
+      "recall_1_bins": 0.5397243171196706,
+      "recall_3_bins": 0.953214894299067,
+      "over_1m": 0.0017715240168041707,
+      "moved_target_mae_m": 0.16464707275464938
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.09398018778937564,
+      "median_m": 0.06060257695898437,
+      "recall_half_bin": 0.47332590980412004,
+      "recall_1_bins": 0.7854684415650149,
+      "recall_3_bins": 0.9793322198039514,
+      "over_1m": 0.0011810160112027805,
+      "moved_target_mae_m": 0.093075713305884
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.09484650578181515,
+      "median_m": 0.06235917339257812,
+      "recall_half_bin": 0.4612964181471546,
+      "recall_1_bins": 0.7769566904557035,
+      "recall_3_bins": 0.9790707091157564,
+      "over_1m": 0.001172580182551332,
+      "moved_target_mae_m": 0.09320494135638131
+     }
+    },
+    "architecture 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.0898097040446476,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.49272831570245146,
+      "recall_1_bins": 0.8104469302019537,
+      "recall_3_bins": 0.9791550674022709,
+      "over_1m": 0.001172580182551332,
+      "moved_target_mae_m": 0.08764838053945416
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.1398708130013858,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.3000961684466265,
+      "recall_1_bins": 0.5594472845067571,
+      "recall_3_bins": 0.9481449612795465,
+      "over_1m": 0.0012569384690658163,
+      "moved_target_mae_m": 0.13747049126904412
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.14478287039190835,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.2919809012839331,
+      "recall_1_bins": 0.5380962021899411,
+      "recall_3_bins": 0.9537632231614112,
+      "over_1m": 0.0016702940729867895,
+      "moved_target_mae_m": 0.1642675172828477
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.08624357078944694,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.515218234887213,
+      "recall_1_bins": 0.8311990686845169,
+      "recall_3_bins": 0.9799564711241585,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08540773249803106
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.0877564285365995,
+      "median_m": 0.055332787658203125,
+      "recall_half_bin": 0.5017968315027586,
+      "recall_1_bins": 0.822434242715662,
+      "recall_3_bins": 0.9800998802112332,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08613989358307919
+     }
+    },
+    "architecture 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.086921376329178,
+      "median_m": 0.055332787658203125,
+      "recall_half_bin": 0.5098446120362403,
+      "recall_1_bins": 0.8300096168446627,
+      "recall_3_bins": 0.9789104283713789,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.0847747465960842
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.12639922266187562,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3342359669990383,
+      "recall_1_bins": 0.6116060130586628,
+      "recall_3_bins": 0.9632029154223819,
+      "over_1m": 0.0012147593258085743,
+      "moved_target_mae_m": 0.12398604251637602
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.14406380432396582,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.2898044574918594,
+      "recall_1_bins": 0.5389988358556461,
+      "recall_3_bins": 0.9538981964198343,
+      "over_1m": 0.0016534224156838926,
+      "moved_target_mae_m": 0.1648364105196766
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.08408917209542895,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5310438494373302,
+      "recall_1_bins": 0.8454471832768132,
+      "recall_3_bins": 0.9800745727252788,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08319768189686019
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.08550762031905773,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5162474059826897,
+      "recall_1_bins": 0.8365389482208837,
+      "recall_3_bins": 0.9801589310117933,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08386334575917884
+     }
+    },
+    "architecture 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.08540068594267547,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5189215636651988,
+      "recall_1_bins": 0.8406978117460479,
+      "recall_3_bins": 0.9790960166017108,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.0832643964856354
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.11579247012950661,
+      "median_m": 0.07816854129492187,
+      "recall_half_bin": 0.36879755698402256,
+      "recall_1_bins": 0.6606266133522296,
+      "recall_3_bins": 0.9720774071637057,
+      "over_1m": 0.0012569384690658163,
+      "moved_target_mae_m": 0.11332183218657413
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.1450872594925778,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.287256837239122,
+      "recall_1_bins": 0.5372526193247963,
+      "recall_3_bins": 0.9539909905350002,
+      "over_1m": 0.0017883956741070676,
+      "moved_target_mae_m": 0.16467839517289265
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.08398046920582615,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5302424457154427,
+      "recall_1_bins": 0.8465691484874559,
+      "recall_3_bins": 0.9799902144387643,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08309769982552694
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.0854188323176228,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5159184086652832,
+      "recall_1_bins": 0.837897116633767,
+      "recall_3_bins": 0.9800745727252788,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.083780747298567
+     }
+    },
+    "architecture 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.08497428568438734,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5188625128646387,
+      "recall_1_bins": 0.8440974506925816,
+      "recall_3_bins": 0.9790116583151963,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.08284468030693314
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.10857075297420782,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.3973781444551298,
+      "recall_1_bins": 0.6979214118202831,
+      "recall_3_bins": 0.9751058696495757,
+      "over_1m": 0.0012569384690658163,
+      "moved_target_mae_m": 0.10606451572326878
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.143619871838115,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.2886571847952624,
+      "recall_1_bins": 0.5372779268107506,
+      "recall_3_bins": 0.9540078621923032,
+      "over_1m": 0.0017630881881527222,
+      "moved_target_mae_m": 0.16487592642221416
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.08406634709528106,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5306895446339694,
+      "recall_1_bins": 0.8461811003694893,
+      "recall_3_bins": 0.980057701067976,
+      "over_1m": 0.001172580182551332,
+      "moved_target_mae_m": 0.08317426899776142
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.08549743303865676,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5161546118675238,
+      "recall_1_bins": 0.8371378920551366,
+      "recall_3_bins": 0.9802517251269592,
+      "over_1m": 0.0011810160112027805,
+      "moved_target_mae_m": 0.08385689053754866
+     }
+    },
+    "architecture 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 118542,
+      "mae_m": 0.08465182753478094,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5194698925275429,
+      "recall_1_bins": 0.8462570228273524,
+      "recall_3_bins": 0.9790116583151963,
+      "over_1m": 0.0011641443538998836,
+      "moved_target_mae_m": 0.0825268938687982
+     },
+     "histogram, tallest bar": {
+      "streams": 118542,
+      "mae_m": 0.10278848755459992,
+      "median_m": 0.06762896269335937,
+      "recall_half_bin": 0.4219010983448904,
+      "recall_1_bins": 0.7313441649373218,
+      "recall_3_bins": 0.9772148268124378,
+      "over_1m": 0.0011978876685056774,
+      "moved_target_mae_m": 0.10024209869264784
+     },
+     "area-optimized circuit": {
+      "streams": 118542,
+      "mae_m": 0.14301046321670524,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.29223397614347657,
+      "recall_1_bins": 0.5409137689595249,
+      "recall_3_bins": 0.9540331696782575,
+      "over_1m": 0.0016702940729867895,
+      "moved_target_mae_m": 0.16426638901993015
+     },
+     "k4 (no gate)": {
+      "streams": 118542,
+      "mae_m": 0.08403328930330661,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.532132071333367,
+      "recall_1_bins": 0.8457340014509626,
+      "recall_3_bins": 0.9798130620370838,
+      "over_1m": 0.001172580182551332,
+      "moved_target_mae_m": 0.08316182063824537
+     },
+     "k4 + gate": {
+      "streams": 118542,
+      "mae_m": 0.08548758289011023,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5172934487354692,
+      "recall_1_bins": 0.8372728653135597,
+      "recall_3_bins": 0.9799142919809013,
+      "over_1m": 0.001172580182551332,
+      "moved_target_mae_m": 0.08385608118911507
+     }
+    },
+    "train 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.14794182265372155,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.33365833333333333,
+      "recall_1_bins": 0.6083416666666667,
+      "recall_3_bins": 0.9623916666666666,
+      "over_1m": 0.006325,
+      "moved_target_mae_m": 0.14381207341020724
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.27613356743798156,
+      "median_m": 0.15370218793945312,
+      "recall_half_bin": 0.19315,
+      "recall_1_bins": 0.3766,
+      "recall_3_bins": 0.8596666666666667,
+      "over_1m": 0.015025,
+      "moved_target_mae_m": 0.6635625462968701
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.4875244531727748,
+      "median_m": 0.14491920577148437,
+      "recall_half_bin": 0.20788333333333334,
+      "recall_1_bins": 0.40086666666666665,
+      "recall_3_bins": 0.846775,
+      "over_1m": 0.019633333333333332,
+      "moved_target_mae_m": 0.3796363539846346
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.4390620393932962,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.33739166666666665,
+      "recall_1_bins": 0.6016833333333333,
+      "recall_3_bins": 0.9325916666666667,
+      "over_1m": 0.015458333333333333,
+      "moved_target_mae_m": 0.3162083939978796
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.2174126963944198,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.33860833333333334,
+      "recall_1_bins": 0.6036833333333333,
+      "recall_3_bins": 0.9386833333333333,
+      "over_1m": 0.00935,
+      "moved_target_mae_m": 0.1860407446940071
+     }
+    },
+    "train 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.1243809849940627,
+      "median_m": 0.07465534842773437,
+      "recall_half_bin": 0.3861583333333333,
+      "recall_1_bins": 0.6884,
+      "recall_3_bins": 0.9723416666666667,
+      "over_1m": 0.005991666666666667,
+      "moved_target_mae_m": 0.1224363487175236
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.19522357604994864,
+      "median_m": 0.13437962716992186,
+      "recall_half_bin": 0.21753333333333333,
+      "recall_1_bins": 0.42275833333333335,
+      "recall_3_bins": 0.9013666666666666,
+      "over_1m": 0.0068,
+      "moved_target_mae_m": 0.22056151689052414
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.19915443350597167,
+      "median_m": 0.10803068066601562,
+      "recall_half_bin": 0.27620833333333333,
+      "recall_1_bins": 0.51685,
+      "recall_3_bins": 0.927625,
+      "over_1m": 0.008241666666666666,
+      "moved_target_mae_m": 0.2038448523858899
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.15112519689662854,
+      "median_m": 0.07114215556054687,
+      "recall_half_bin": 0.40991666666666665,
+      "recall_1_bins": 0.7039666666666666,
+      "recall_3_bins": 0.967775,
+      "over_1m": 0.0067666666666666665,
+      "moved_target_mae_m": 0.13616612035974549
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.12608053489884244,
+      "median_m": 0.07114215556054687,
+      "recall_half_bin": 0.4118,
+      "recall_1_bins": 0.7042833333333334,
+      "recall_3_bins": 0.9682666666666667,
+      "over_1m": 0.006141666666666667,
+      "moved_target_mae_m": 0.12369306378780762
+     }
+    },
+    "train 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.11494641771487472,
+      "median_m": 0.06762896269335937,
+      "recall_half_bin": 0.425775,
+      "recall_1_bins": 0.7449416666666666,
+      "recall_3_bins": 0.9742833333333333,
+      "over_1m": 0.005925,
+      "moved_target_mae_m": 0.11298495697765312
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.17654677350516756,
+      "median_m": 0.12032685570117187,
+      "recall_half_bin": 0.24305,
+      "recall_1_bins": 0.468725,
+      "recall_3_bins": 0.9278416666666667,
+      "over_1m": 0.0063,
+      "moved_target_mae_m": 0.17427747840190733
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.15565442137322713,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.301225,
+      "recall_1_bins": 0.5564,
+      "recall_3_bins": 0.9503583333333333,
+      "over_1m": 0.006408333333333334,
+      "moved_target_mae_m": 0.1822510022462727
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.11130588403951786,
+      "median_m": 0.06235917339257812,
+      "recall_half_bin": 0.46105833333333335,
+      "recall_1_bins": 0.771725,
+      "recall_3_bins": 0.974375,
+      "over_1m": 0.005808333333333334,
+      "moved_target_mae_m": 0.10915110291275684
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.11068766906243813,
+      "median_m": 0.06235917339257812,
+      "recall_half_bin": 0.46320833333333333,
+      "recall_1_bins": 0.7713416666666667,
+      "recall_3_bins": 0.9740416666666667,
+      "over_1m": 0.0057666666666666665,
+      "moved_target_mae_m": 0.1088700045092349
+     }
+    },
+    "train 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.11002952410959203,
+      "median_m": 0.06411576982617187,
+      "recall_half_bin": 0.44805833333333334,
+      "recall_1_bins": 0.7816583333333333,
+      "recall_3_bins": 0.9743,
+      "over_1m": 0.006033333333333333,
+      "moved_target_mae_m": 0.10805721926465629
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.16102247381793144,
+      "median_m": 0.10803068066601562,
+      "recall_half_bin": 0.2703833333333333,
+      "recall_1_bins": 0.5159,
+      "recall_3_bins": 0.9489333333333333,
+      "over_1m": 0.006166666666666667,
+      "moved_target_mae_m": 0.15868655847704535
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.15447921925815686,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.30295,
+      "recall_1_bins": 0.562275,
+      "recall_3_bins": 0.95215,
+      "over_1m": 0.006308333333333333,
+      "moved_target_mae_m": 0.18155217980636185
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.10515546445362153,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.48420833333333335,
+      "recall_1_bins": 0.8063416666666666,
+      "recall_3_bins": 0.9757666666666667,
+      "over_1m": 0.005791666666666666,
+      "moved_target_mae_m": 0.10304468107824691
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.10498493446353724,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.48795,
+      "recall_1_bins": 0.8080333333333334,
+      "recall_3_bins": 0.9755833333333334,
+      "over_1m": 0.005808333333333334,
+      "moved_target_mae_m": 0.10307818554187538
+     }
+    },
+    "train 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.10742371417099034,
+      "median_m": 0.06060257695898437,
+      "recall_half_bin": 0.4614333333333333,
+      "recall_1_bins": 0.8000666666666667,
+      "recall_3_bins": 0.9745666666666667,
+      "over_1m": 0.006016666666666667,
+      "moved_target_mae_m": 0.10544057457381428
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.14900691228619564,
+      "median_m": 0.09924769849804686,
+      "recall_half_bin": 0.2965083333333333,
+      "recall_1_bins": 0.5602833333333334,
+      "recall_3_bins": 0.9612833333333334,
+      "over_1m": 0.005991666666666667,
+      "moved_target_mae_m": 0.1465846461314729
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.15362724281980136,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.30745833333333333,
+      "recall_1_bins": 0.563525,
+      "recall_3_bins": 0.9525333333333333,
+      "over_1m": 0.006225,
+      "moved_target_mae_m": 0.1813439858299764
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.10366088196479069,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4908166666666667,
+      "recall_1_bins": 0.815375,
+      "recall_3_bins": 0.9761333333333333,
+      "over_1m": 0.005683333333333334,
+      "moved_target_mae_m": 0.10147172802916032
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.10334164817062551,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.496675,
+      "recall_1_bins": 0.81685,
+      "recall_3_bins": 0.9757833333333333,
+      "over_1m": 0.005675,
+      "moved_target_mae_m": 0.10140049888524817
+     }
+    },
+    "train 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.10616459413146939,
+      "median_m": 0.06060257695898437,
+      "recall_half_bin": 0.4691666666666667,
+      "recall_1_bins": 0.8129416666666667,
+      "recall_3_bins": 0.97435,
+      "over_1m": 0.006066666666666666,
+      "moved_target_mae_m": 0.10417798997936127
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.14048489896459124,
+      "median_m": 0.09222131276367188,
+      "recall_half_bin": 0.31865,
+      "recall_1_bins": 0.597225,
+      "recall_3_bins": 0.9672166666666666,
+      "over_1m": 0.00605,
+      "moved_target_mae_m": 0.13796722024773334
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.1527146646657738,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.30625833333333335,
+      "recall_1_bins": 0.5637916666666667,
+      "recall_3_bins": 0.951725,
+      "over_1m": 0.006241666666666667,
+      "moved_target_mae_m": 0.18122328802534562
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.10395773517936735,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4871666666666667,
+      "recall_1_bins": 0.8148333333333333,
+      "recall_3_bins": 0.9761083333333334,
+      "over_1m": 0.005825,
+      "moved_target_mae_m": 0.1017459061288335
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.1035641329739714,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.49245,
+      "recall_1_bins": 0.8166583333333334,
+      "recall_3_bins": 0.9757916666666666,
+      "over_1m": 0.005825,
+      "moved_target_mae_m": 0.10161066459962408
+     }
+    },
+    "train 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.10557217579798416,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.47228333333333333,
+      "recall_1_bins": 0.8188416666666667,
+      "recall_3_bins": 0.9744916666666666,
+      "over_1m": 0.006033333333333333,
+      "moved_target_mae_m": 0.10358750174931086
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.13438953929922484,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.335075,
+      "recall_1_bins": 0.6247333333333334,
+      "recall_3_bins": 0.971125,
+      "over_1m": 0.005933333333333333,
+      "moved_target_mae_m": 0.13179012576710172
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.15309415338433477,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.305525,
+      "recall_1_bins": 0.5630416666666667,
+      "recall_3_bins": 0.9523916666666666,
+      "over_1m": 0.006266666666666667,
+      "moved_target_mae_m": 0.18177629732220352
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.10389549769402118,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4898416666666667,
+      "recall_1_bins": 0.8139333333333333,
+      "recall_3_bins": 0.9761833333333333,
+      "over_1m": 0.005741666666666667,
+      "moved_target_mae_m": 0.10167991049731957
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.10352701919911005,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.49511666666666665,
+      "recall_1_bins": 0.81605,
+      "recall_3_bins": 0.975825,
+      "over_1m": 0.00575,
+      "moved_target_mae_m": 0.10157292939753357
+     }
+    },
+    "train 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.10519035275603429,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.4742,
+      "recall_1_bins": 0.8224666666666667,
+      "recall_3_bins": 0.9745833333333334,
+      "over_1m": 0.00605,
+      "moved_target_mae_m": 0.10320508785298119
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.12976088476717504,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.35030833333333333,
+      "recall_1_bins": 0.6489083333333333,
+      "recall_3_bins": 0.97305,
+      "over_1m": 0.006,
+      "moved_target_mae_m": 0.12707341718566048
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.15462307221932797,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.30538333333333334,
+      "recall_1_bins": 0.562325,
+      "recall_3_bins": 0.9519,
+      "over_1m": 0.0063416666666666665,
+      "moved_target_mae_m": 0.1825176559531451
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.10408334145219887,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4887166666666667,
+      "recall_1_bins": 0.8138583333333334,
+      "recall_3_bins": 0.9759,
+      "over_1m": 0.005816666666666667,
+      "moved_target_mae_m": 0.10185170987274743
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.10369971036889832,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.49435833333333334,
+      "recall_1_bins": 0.8163416666666666,
+      "recall_3_bins": 0.9756666666666667,
+      "over_1m": 0.005825,
+      "moved_target_mae_m": 0.1017377622503607
+     }
+    }
+   }
+  },
+  "v2-all-recordings": {
+   "what": "every labelled ray (train capped at 60,000), 16 to 256 photons, 20 draws, target = reference lidar label",
+   "bands": {
+    "validation 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 110100,
+      "mae_m": 0.2836010367575084,
+      "median_m": 0.12735324143554685,
+      "recall_half_bin": 0.24436875567665758,
+      "recall_1_bins": 0.4553587647593097,
+      "recall_3_bins": 0.7919981834695731,
+      "over_1m": 0.022951861943687556,
+      "moved_target_mae_m": 0.25795576087684563
+     },
+     "histogram, tallest bar": {
+      "streams": 110100,
+      "mae_m": 0.4797868767487403,
+      "median_m": 0.21518306311523436,
+      "recall_half_bin": 0.1432061762034514,
+      "recall_1_bins": 0.28034514078110806,
+      "recall_3_bins": 0.6798637602179837,
+      "over_1m": 0.05035422343324251,
+      "moved_target_mae_m": 1.0812622250524964
+     },
+     "area-optimized circuit": {
+      "streams": 110100,
+      "mae_m": 0.6828419292476856,
+      "median_m": 0.1853209237441406,
+      "recall_half_bin": 0.1725431425976385,
+      "recall_1_bins": 0.33127157129881923,
+      "recall_3_bins": 0.7114623069936421,
+      "over_1m": 0.04717529518619437,
+      "moved_target_mae_m": 0.5375560475542579
+     },
+     "k4 (no gate)": {
+      "streams": 110100,
+      "mae_m": 0.6600757472992902,
+      "median_m": 0.1326230307363281,
+      "recall_half_bin": 0.24520435967302454,
+      "recall_1_bins": 0.4424977293369664,
+      "recall_3_bins": 0.7615712988192552,
+      "over_1m": 0.037111716621253406,
+      "moved_target_mae_m": 0.49509124072549293
+     },
+     "k4 + gate": {
+      "streams": 110100,
+      "mae_m": 0.3533654457791316,
+      "median_m": 0.1326230307363281,
+      "recall_half_bin": 0.24682107175295187,
+      "recall_1_bins": 0.44670299727520435,
+      "recall_3_bins": 0.7696276112624887,
+      "over_1m": 0.027502270663033606,
+      "moved_target_mae_m": 0.3091214323931059
+     }
+    },
+    "validation 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 110100,
+      "mae_m": 0.25271861980082305,
+      "median_m": 0.10627408423242186,
+      "recall_half_bin": 0.2900272479564033,
+      "recall_1_bins": 0.522079927338783,
+      "recall_3_bins": 0.8043233424159855,
+      "over_1m": 0.020608537693006357,
+      "moved_target_mae_m": 0.23151595280118903
+     },
+     "histogram, tallest bar": {
+      "streams": 110100,
+      "mae_m": 0.33783514814048343,
+      "median_m": 0.19410390591210935,
+      "recall_half_bin": 0.15912806539509536,
+      "recall_1_bins": 0.31141689373297005,
+      "recall_3_bins": 0.7115712988192552,
+      "over_1m": 0.03356039963669392,
+      "moved_target_mae_m": 0.3797447761574482
+     },
+     "area-optimized circuit": {
+      "streams": 110100,
+      "mae_m": 0.3396977969897202,
+      "median_m": 0.14843239863867186,
+      "recall_half_bin": 0.21692098092643053,
+      "recall_1_bins": 0.40410535876475934,
+      "recall_3_bins": 0.766158038147139,
+      "over_1m": 0.02938237965485922,
+      "moved_target_mae_m": 0.31659824366157685
+     },
+     "k4 (no gate)": {
+      "streams": 110100,
+      "mae_m": 0.2964921571710024,
+      "median_m": 0.10100429493164062,
+      "recall_half_bin": 0.3083287920072661,
+      "recall_1_bins": 0.539464123524069,
+      "recall_3_bins": 0.8009355131698456,
+      "over_1m": 0.020517711171662126,
+      "moved_target_mae_m": 0.26075068577686894
+     },
+     "k4 + gate": {
+      "streams": 110100,
+      "mae_m": 0.2566498283877437,
+      "median_m": 0.10100429493164062,
+      "recall_half_bin": 0.3078019981834696,
+      "recall_1_bins": 0.539700272479564,
+      "recall_3_bins": 0.8011080835603996,
+      "over_1m": 0.018937329700272478,
+      "moved_target_mae_m": 0.23297015757866685
+     }
+    },
+    "validation 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 110100,
+      "mae_m": 0.24254998653540344,
+      "median_m": 0.09397790919726562,
+      "recall_half_bin": 0.32255222524977295,
+      "recall_1_bins": 0.5693369663941871,
+      "recall_3_bins": 0.8065213442325159,
+      "over_1m": 0.019709355131698456,
+      "moved_target_mae_m": 0.22137454786087965
+     },
+     "histogram, tallest bar": {
+      "streams": 110100,
+      "mae_m": 0.31586572754488085,
+      "median_m": 0.17653794157617186,
+      "recall_half_bin": 0.17584014532243414,
+      "recall_1_bins": 0.3396366939146231,
+      "recall_3_bins": 0.7337511353315168,
+      "over_1m": 0.030208900999091733,
+      "moved_target_mae_m": 0.2967176768022519
+     },
+     "area-optimized circuit": {
+      "streams": 110100,
+      "mae_m": 0.2870951681429138,
+      "median_m": 0.13789282003710937,
+      "recall_half_bin": 0.22552225249772934,
+      "recall_1_bins": 0.42623978201634877,
+      "recall_3_bins": 0.7834695731153497,
+      "over_1m": 0.025495004541326066,
+      "moved_target_mae_m": 0.2809435381524425
+     },
+     "k4 (no gate)": {
+      "streams": 110100,
+      "mae_m": 0.23685685572416776,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.36135331516802904,
+      "recall_1_bins": 0.6047229791099001,
+      "recall_3_bins": 0.8084014532243415,
+      "over_1m": 0.017184377838328792,
+      "moved_target_mae_m": 0.21480867235917098
+     },
+     "k4 + gate": {
+      "streams": 110100,
+      "mae_m": 0.23406481846303281,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.3595731153496821,
+      "recall_1_bins": 0.6041144414168937,
+      "recall_3_bins": 0.8080835603996367,
+      "over_1m": 0.017220708446866486,
+      "moved_target_mae_m": 0.2129820724775998
+     }
+    },
+    "validation 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 110000,
+      "mae_m": 0.23819423003671733,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3427454545454545,
+      "recall_1_bins": 0.5972727272727273,
+      "recall_3_bins": 0.8082454545454546,
+      "over_1m": 0.01950909090909091,
+      "moved_target_mae_m": 0.21701493839758357
+     },
+     "histogram, tallest bar": {
+      "streams": 110000,
+      "mae_m": 0.30333752259976693,
+      "median_m": 0.16072857367382812,
+      "recall_half_bin": 0.19039090909090908,
+      "recall_1_bins": 0.36827272727272725,
+      "recall_3_bins": 0.7521727272727273,
+      "over_1m": 0.027863636363636365,
+      "moved_target_mae_m": 0.2824876620515715
+     },
+     "area-optimized circuit": {
+      "streams": 110000,
+      "mae_m": 0.2823477060760527,
+      "median_m": 0.13789282003710937,
+      "recall_half_bin": 0.22817272727272728,
+      "recall_1_bins": 0.4290090909090909,
+      "recall_3_bins": 0.7852181818181818,
+      "over_1m": 0.02492727272727273,
+      "moved_target_mae_m": 0.2750915769313549
+     },
+     "k4 (no gate)": {
+      "streams": 110000,
+      "mae_m": 0.22596359768629645,
+      "median_m": 0.07641194486132812,
+      "recall_half_bin": 0.39181818181818184,
+      "recall_1_bins": 0.6419818181818182,
+      "recall_3_bins": 0.8094727272727272,
+      "over_1m": 0.01630909090909091,
+      "moved_target_mae_m": 0.20496331421639777
+     },
+     "k4 + gate": {
+      "streams": 110000,
+      "mae_m": 0.22688076131654666,
+      "median_m": 0.07641194486132812,
+      "recall_half_bin": 0.3909818181818182,
+      "recall_1_bins": 0.6413272727272727,
+      "recall_3_bins": 0.8098090909090909,
+      "over_1m": 0.016572727272727274,
+      "moved_target_mae_m": 0.2052428010604256
+     }
+    },
+    "architecture 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 1610220,
+      "mae_m": 2.957050430145617,
+      "median_m": 0.25207158822070314,
+      "recall_half_bin": 0.15704437902895257,
+      "recall_1_bins": 0.2926624933238936,
+      "recall_3_bins": 0.5589733079951807,
+      "over_1m": 0.27682739004608065,
+      "moved_target_mae_m": 2.972501558750142
+     },
+     "histogram, tallest bar": {
+      "streams": 1610220,
+      "mae_m": 4.096211204879378,
+      "median_m": 0.4066520743769531,
+      "recall_half_bin": 0.09875917576480232,
+      "recall_1_bins": 0.19309411136366458,
+      "recall_3_bins": 0.4568493746196172,
+      "over_1m": 0.33502875383487973,
+      "moved_target_mae_m": 5.2115800249593285
+     },
+     "area-optimized circuit": {
+      "streams": 1610220,
+      "mae_m": 3.4829607515297507,
+      "median_m": 0.33111842773242184,
+      "recall_half_bin": 0.11747214666318888,
+      "recall_1_bins": 0.22627467054191353,
+      "recall_3_bins": 0.5046322862714412,
+      "over_1m": 0.2928686763299425,
+      "moved_target_mae_m": 3.4396415056583374
+     },
+     "k4 (no gate)": {
+      "streams": 1610220,
+      "mae_m": 3.567278849316163,
+      "median_m": 0.2907167097597656,
+      "recall_half_bin": 0.1416613878848853,
+      "recall_1_bins": 0.266564196196793,
+      "recall_3_bins": 0.5298897045124269,
+      "over_1m": 0.30081603756008496,
+      "moved_target_mae_m": 3.5020776141913945
+     },
+     "k4 + gate": {
+      "streams": 1610220,
+      "mae_m": 3.1374836128437105,
+      "median_m": 0.28193372759179686,
+      "recall_half_bin": 0.14187999155394915,
+      "recall_1_bins": 0.2678994174709046,
+      "recall_3_bins": 0.5376482716647415,
+      "over_1m": 0.28925861062463515,
+      "moved_target_mae_m": 3.139882257206668
+     }
+    },
+    "architecture 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 1609640,
+      "mae_m": 2.847629210193212,
+      "median_m": 0.22045285241601562,
+      "recall_half_bin": 0.17605116672050894,
+      "recall_1_bins": 0.3235288635968291,
+      "recall_3_bins": 0.5780478864839343,
+      "over_1m": 0.26867374071220895,
+      "moved_target_mae_m": 2.860227442262718
+     },
+     "histogram, tallest bar": {
+      "streams": 1609640,
+      "mae_m": 3.552082676953506,
+      "median_m": 0.36273716353710933,
+      "recall_half_bin": 0.11052409234362963,
+      "recall_1_bins": 0.21438644665888024,
+      "recall_3_bins": 0.4836099997514972,
+      "over_1m": 0.30827079346934716,
+      "moved_target_mae_m": 3.7432272503715995
+     },
+     "area-optimized circuit": {
+      "streams": 1609640,
+      "mae_m": 3.0178018505937647,
+      "median_m": 0.2801771311582031,
+      "recall_half_bin": 0.13597885241420443,
+      "recall_1_bins": 0.25934929549464475,
+      "recall_3_bins": 0.5434811510648344,
+      "over_1m": 0.27146442682835914,
+      "moved_target_mae_m": 3.044896581088834
+     },
+     "k4 (no gate)": {
+      "streams": 1609640,
+      "mae_m": 3.102394612384316,
+      "median_m": 0.2239660452832031,
+      "recall_half_bin": 0.17685320941328495,
+      "recall_1_bins": 0.32510809870530055,
+      "recall_3_bins": 0.5687569891404289,
+      "over_1m": 0.27855669590715937,
+      "moved_target_mae_m": 3.1046404144598987
+     },
+     "k4 + gate": {
+      "streams": 1609640,
+      "mae_m": 2.9558992443742014,
+      "median_m": 0.2239660452832031,
+      "recall_half_bin": 0.17501118262468626,
+      "recall_1_bins": 0.32357235158172015,
+      "recall_3_bins": 0.5715936482691782,
+      "over_1m": 0.2744762804105266,
+      "moved_target_mae_m": 2.9714097011672123
+     }
+    },
+    "architecture 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 1555400,
+      "mae_m": 2.502037332187236,
+      "median_m": 0.1923473094785156,
+      "recall_half_bin": 0.19397068278256396,
+      "recall_1_bins": 0.35193262183361196,
+      "recall_3_bins": 0.6031721743602931,
+      "over_1m": 0.2461071107110711,
+      "moved_target_mae_m": 2.510071146464842
+     },
+     "histogram, tallest bar": {
+      "streams": 1555400,
+      "mae_m": 2.925636507559067,
+      "median_m": 0.3153090598300781,
+      "recall_half_bin": 0.12537096566799538,
+      "recall_1_bins": 0.24117268869744118,
+      "recall_3_bins": 0.5163012729844413,
+      "over_1m": 0.27627684196991126,
+      "moved_target_mae_m": 2.956389592947916
+     },
+     "area-optimized circuit": {
+      "streams": 1555400,
+      "mae_m": 2.541791971553082,
+      "median_m": 0.25382818465429685,
+      "recall_half_bin": 0.14314774334576313,
+      "recall_1_bins": 0.2723190176160473,
+      "recall_3_bins": 0.5711849042047061,
+      "over_1m": 0.24387938793879388,
+      "moved_target_mae_m": 2.596139667571079
+     },
+     "k4 (no gate)": {
+      "streams": 1555400,
+      "mae_m": 2.647390756516667,
+      "median_m": 0.18180773087695312,
+      "recall_half_bin": 0.2069075478976469,
+      "recall_1_bins": 0.3734769191204835,
+      "recall_3_bins": 0.5978108525138228,
+      "over_1m": 0.25075929021473575,
+      "moved_target_mae_m": 2.6574507864049997
+     },
+     "k4 + gate": {
+      "streams": 1555400,
+      "mae_m": 2.600713227750503,
+      "median_m": 0.18180773087695312,
+      "recall_half_bin": 0.2028114954352578,
+      "recall_1_bins": 0.3695898161244696,
+      "recall_3_bins": 0.5987848784878488,
+      "over_1m": 0.2494927349877845,
+      "moved_target_mae_m": 2.6124327896975457
+     }
+    },
+    "architecture 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 1219660,
+      "mae_m": 1.0515823088687017,
+      "median_m": 0.13613622360351563,
+      "recall_half_bin": 0.2425692406080383,
+      "recall_1_bins": 0.4360871062427234,
+      "recall_3_bins": 0.7225341488611581,
+      "over_1m": 0.1414369578407097,
+      "moved_target_mae_m": 1.0512318386337203
+     },
+     "histogram, tallest bar": {
+      "streams": 1219660,
+      "mae_m": 1.2299640781712409,
+      "median_m": 0.2064000809472656,
+      "recall_half_bin": 0.1663824344489448,
+      "recall_1_bins": 0.31658740960595577,
+      "recall_3_bins": 0.6380319105324435,
+      "over_1m": 0.1586770083465884,
+      "moved_target_mae_m": 1.2305249854003346
+     },
+     "area-optimized circuit": {
+      "streams": 1219660,
+      "mae_m": 1.0895467010397806,
+      "median_m": 0.18707752017773435,
+      "recall_half_bin": 0.17322040568683075,
+      "recall_1_bins": 0.3301493858944296,
+      "recall_3_bins": 0.6855451519275864,
+      "over_1m": 0.14000623124477313,
+      "moved_target_mae_m": 1.1189554802724169
+     },
+     "k4 (no gate)": {
+      "streams": 1219660,
+      "mae_m": 1.1414844097428956,
+      "median_m": 0.11857025926757812,
+      "recall_half_bin": 0.27079677943033303,
+      "recall_1_bins": 0.4805552367053113,
+      "recall_3_bins": 0.7174647032779627,
+      "over_1m": 0.14461653247626388,
+      "moved_target_mae_m": 1.1406736154410064
+     },
+     "k4 + gate": {
+      "streams": 1219660,
+      "mae_m": 1.1321614067818935,
+      "median_m": 0.12032685570117187,
+      "recall_half_bin": 0.26406703507534884,
+      "recall_1_bins": 0.47439614318744566,
+      "recall_3_bins": 0.7179394257416001,
+      "over_1m": 0.14445337225128316,
+      "moved_target_mae_m": 1.132423392531464
+     }
+    },
+    "train 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 1200000,
+      "mae_m": 2.463202329783855,
+      "median_m": 0.24855839535351562,
+      "recall_half_bin": 0.15430416666666666,
+      "recall_1_bins": 0.2905225,
+      "recall_3_bins": 0.5672083333333333,
+      "over_1m": 0.2634166666666667,
+      "moved_target_mae_m": 2.508646251543143
+     },
+     "histogram, tallest bar": {
+      "streams": 1200000,
+      "mae_m": 3.5515098475049927,
+      "median_m": 0.37152014570507813,
+      "recall_half_bin": 0.097395,
+      "recall_1_bins": 0.19133416666666667,
+      "recall_3_bins": 0.47433583333333335,
+      "over_1m": 0.306075,
+      "moved_target_mae_m": 4.654263359203335
+     },
+     "area-optimized circuit": {
+      "streams": 1200000,
+      "mae_m": 2.943463411382271,
+      "median_m": 0.3399014099003906,
+      "recall_half_bin": 0.11075416666666667,
+      "recall_1_bins": 0.21445833333333333,
+      "recall_3_bins": 0.4976291666666667,
+      "over_1m": 0.27881833333333333,
+      "moved_target_mae_m": 2.9626261089686645
+     },
+     "k4 (no gate)": {
+      "streams": 1200000,
+      "mae_m": 2.98974266092418,
+      "median_m": 0.2749073418574219,
+      "recall_half_bin": 0.15236583333333334,
+      "recall_1_bins": 0.2817908333333333,
+      "recall_3_bins": 0.5447333333333333,
+      "over_1m": 0.2828716666666667,
+      "moved_target_mae_m": 2.9992816691558386
+     },
+     "k4 + gate": {
+      "streams": 1200000,
+      "mae_m": 2.622544695637502,
+      "median_m": 0.26788095612304685,
+      "recall_half_bin": 0.15354583333333333,
+      "recall_1_bins": 0.2845283333333333,
+      "recall_3_bins": 0.5517525,
+      "over_1m": 0.2725841666666667,
+      "moved_target_mae_m": 2.662091586466006
+     }
+    },
+    "train 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 1198080,
+      "mae_m": 2.3203623126772923,
+      "median_m": 0.2239660452832031,
+      "recall_half_bin": 0.17309945913461539,
+      "recall_1_bins": 0.3210536858974359,
+      "recall_3_bins": 0.5835453392094017,
+      "over_1m": 0.25728165064102565,
+      "moved_target_mae_m": 2.360762240245058
+     },
+     "histogram, tallest bar": {
+      "streams": 1198080,
+      "mae_m": 2.9870556250038134,
+      "median_m": 0.33111842773242184,
+      "recall_half_bin": 0.10948517628205129,
+      "recall_1_bins": 0.2138947315705128,
+      "recall_3_bins": 0.5041933760683761,
+      "over_1m": 0.2825003338675214,
+      "moved_target_mae_m": 3.213202929629039
+     },
+     "area-optimized circuit": {
+      "streams": 1198080,
+      "mae_m": 2.481089355122792,
+      "median_m": 0.28544692045898434,
+      "recall_half_bin": 0.13573467548076923,
+      "recall_1_bins": 0.25820479433760685,
+      "recall_3_bins": 0.5407894297542735,
+      "over_1m": 0.2623739650106838,
+      "moved_target_mae_m": 2.556872119634761
+     },
+     "k4 (no gate)": {
+      "streams": 1198080,
+      "mae_m": 2.5475329327322456,
+      "median_m": 0.2309924310175781,
+      "recall_half_bin": 0.17862496661324787,
+      "recall_1_bins": 0.3239399706196581,
+      "recall_3_bins": 0.5736369858440171,
+      "over_1m": 0.2649188701923077,
+      "moved_target_mae_m": 2.602880227611565
+     },
+     "k4 + gate": {
+      "streams": 1198080,
+      "mae_m": 2.436465334349776,
+      "median_m": 0.22923583458398436,
+      "recall_half_bin": 0.17880191639957266,
+      "recall_1_bins": 0.3244441105769231,
+      "recall_3_bins": 0.5755291800213675,
+      "over_1m": 0.2612863915598291,
+      "moved_target_mae_m": 2.4789948936155612
+     }
+    },
+    "train 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 1158820,
+      "mae_m": 1.9469911246057792,
+      "median_m": 0.19761709877929687,
+      "recall_half_bin": 0.1907397179889888,
+      "recall_1_bins": 0.35024593983534974,
+      "recall_3_bins": 0.6054978340035554,
+      "over_1m": 0.2400407310885211,
+      "moved_target_mae_m": 1.9796146436932016
+     },
+     "histogram, tallest bar": {
+      "streams": 1158820,
+      "mae_m": 2.326604171924678,
+      "median_m": 0.2924733061933594,
+      "recall_half_bin": 0.12293367390966672,
+      "recall_1_bins": 0.23803351685335083,
+      "recall_3_bins": 0.5368918382492536,
+      "over_1m": 0.2576905817987263,
+      "moved_target_mae_m": 2.3857067994751704
+     },
+     "area-optimized circuit": {
+      "streams": 1158820,
+      "mae_m": 1.9887643791730198,
+      "median_m": 0.25382818465429685,
+      "recall_half_bin": 0.14781242988557325,
+      "recall_1_bins": 0.279851055383925,
+      "recall_3_bins": 0.5680036588943925,
+      "over_1m": 0.24105814535475742,
+      "moved_target_mae_m": 2.067447978260213
+     },
+     "k4 (no gate)": {
+      "streams": 1158820,
+      "mae_m": 2.0752532435660047,
+      "median_m": 0.20113029164648435,
+      "recall_half_bin": 0.2016490913170294,
+      "recall_1_bins": 0.3590851038124989,
+      "recall_3_bins": 0.5969667420306863,
+      "over_1m": 0.2422749003296457,
+      "moved_target_mae_m": 2.1167159456862095
+     },
+     "k4 + gate": {
+      "streams": 1158820,
+      "mae_m": 2.0377339251720152,
+      "median_m": 0.20113029164648435,
+      "recall_half_bin": 0.20190797535423965,
+      "recall_1_bins": 0.3591584542897085,
+      "recall_3_bins": 0.5978193334598989,
+      "over_1m": 0.2411220034172693,
+      "moved_target_mae_m": 2.0728955447520407
+     }
+    },
+    "train 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 997520,
+      "mae_m": 1.015799632857629,
+      "median_m": 0.15370218793945312,
+      "recall_half_bin": 0.22200858128157833,
+      "recall_1_bins": 0.40617531478065605,
+      "recall_3_bins": 0.6685219343973053,
+      "over_1m": 0.18877315743042747,
+      "moved_target_mae_m": 1.0342409693348515
+     },
+     "histogram, tallest bar": {
+      "streams": 997520,
+      "mae_m": 1.1559223430843715,
+      "median_m": 0.22923583458398436,
+      "recall_half_bin": 0.14823963429304676,
+      "recall_1_bins": 0.2852614483920122,
+      "recall_3_bins": 0.6085191274360414,
+      "over_1m": 0.19676397465714973,
+      "moved_target_mae_m": 1.1776659053591296
+     },
+     "area-optimized circuit": {
+      "streams": 997520,
+      "mae_m": 1.0357843537124616,
+      "median_m": 0.20464348451367187,
+      "recall_half_bin": 0.16926778410457935,
+      "recall_1_bins": 0.3199424572940893,
+      "recall_3_bins": 0.6380954767824204,
+      "over_1m": 0.18793908894057262,
+      "moved_target_mae_m": 1.0824765156420653
+     },
+     "k4 (no gate)": {
+      "streams": 997520,
+      "mae_m": 1.0728462689158087,
+      "median_m": 0.15018899507226563,
+      "recall_half_bin": 0.23889846820113883,
+      "recall_1_bins": 0.4215504451038576,
+      "recall_3_bins": 0.6628809447429626,
+      "over_1m": 0.18798921324885717,
+      "moved_target_mae_m": 1.0906550387533844
+     },
+     "k4 + gate": {
+      "streams": 997520,
+      "mae_m": 1.0677388563622263,
+      "median_m": 0.15018899507226563,
+      "recall_half_bin": 0.2396864223273719,
+      "recall_1_bins": 0.42180607907610873,
+      "recall_3_bins": 0.6630994867270832,
+      "over_1m": 0.18797317347020612,
+      "moved_target_mae_m": 1.0853815974348937
+     }
+    }
+   }
+  },
+  "v3-long-streams-trusted": {
+   "what": "trusted rays with at least 4,096 recorded photons (train capped at 20,000), 16 to 4,096 photons, 6 draws, target = full-recording sub-bin fit",
+   "bands": {
+    "validation 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.09963337702882567,
+      "median_m": 0.06587236625976563,
+      "recall_half_bin": 0.4427513774104683,
+      "recall_1_bins": 0.7458677685950413,
+      "recall_3_bins": 0.9918216253443526,
+      "over_1m": 0.0006887052341597796,
+      "moved_target_mae_m": 0.09128734870071291
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.27143125386874417,
+      "median_m": 0.13437962716992186,
+      "recall_half_bin": 0.21582300275482094,
+      "recall_1_bins": 0.41382575757575757,
+      "recall_3_bins": 0.8799931129476584,
+      "over_1m": 0.011535812672176309,
+      "moved_target_mae_m": 0.7347334255194765
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.45516384863675036,
+      "median_m": 0.12384004856835937,
+      "recall_half_bin": 0.23984159779614325,
+      "recall_1_bins": 0.4534263085399449,
+      "recall_3_bins": 0.8885158402203857,
+      "over_1m": 0.015323691460055097,
+      "moved_target_mae_m": 0.35343635140835633
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.40830725605677376,
+      "median_m": 0.07641194486132812,
+      "recall_half_bin": 0.3669077134986226,
+      "recall_1_bins": 0.6442837465564738,
+      "recall_3_bins": 0.9590220385674931,
+      "over_1m": 0.01127754820936639,
+      "moved_target_mae_m": 0.3013458997393652
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.16602242523848895,
+      "median_m": 0.07816854129492187,
+      "recall_half_bin": 0.3645833333333333,
+      "recall_1_bins": 0.650137741046832,
+      "recall_3_bins": 0.9706439393939394,
+      "over_1m": 0.0029269972451790634,
+      "moved_target_mae_m": 0.14404222882864182
+     }
+    },
+    "validation 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.061807244019572306,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.5962465564738292,
+      "recall_1_bins": 0.8849862258953168,
+      "recall_3_bins": 0.9987086776859504,
+      "over_1m": 8.608815426997245e-05,
+      "moved_target_mae_m": 0.05673538264996322
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.1454792298118935,
+      "median_m": 0.11681366283398437,
+      "recall_half_bin": 0.253185261707989,
+      "recall_1_bins": 0.47701446280991733,
+      "recall_3_bins": 0.9305268595041323,
+      "over_1m": 0.0005165289256198347,
+      "moved_target_mae_m": 0.17634927068496303
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.14457703989916357,
+      "median_m": 0.09573450563085938,
+      "recall_half_bin": 0.3255853994490358,
+      "recall_1_bins": 0.5987431129476584,
+      "recall_3_bins": 0.9661673553719008,
+      "over_1m": 0.0021522038567493114,
+      "moved_target_mae_m": 0.15575257370531354
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.0793437192988912,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4989669421487603,
+      "recall_1_bins": 0.809486914600551,
+      "recall_3_bins": 0.9948347107438017,
+      "over_1m": 0.0006887052341597796,
+      "moved_target_mae_m": 0.07784455966399227
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.07503381414954487,
+      "median_m": 0.055332787658203125,
+      "recall_half_bin": 0.5020661157024794,
+      "recall_1_bins": 0.8153409090909091,
+      "recall_3_bins": 0.9957816804407713,
+      "over_1m": 0.0001721763085399449,
+      "moved_target_mae_m": 0.0698675512115625
+     }
+    },
+    "validation 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.03972262912487887,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.7444903581267218,
+      "recall_1_bins": 0.9653064738292011,
+      "recall_3_bins": 0.99974173553719,
+      "over_1m": 0.0001721763085399449,
+      "moved_target_mae_m": 0.039722605016465656
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.12477499232634603,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.29476584022038566,
+      "recall_1_bins": 0.5451101928374655,
+      "recall_3_bins": 0.956525482093664,
+      "over_1m": 0.00025826446280991736,
+      "moved_target_mae_m": 0.12475590363180482
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.10869086770560353,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3650137741046832,
+      "recall_1_bins": 0.6538395316804407,
+      "recall_3_bins": 0.9864841597796143,
+      "over_1m": 0.00025826446280991736,
+      "moved_target_mae_m": 0.13345212150350297
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.050563464279736806,
+      "median_m": 0.04128001618945312,
+      "recall_half_bin": 0.6441976584022039,
+      "recall_1_bins": 0.9222623966942148,
+      "recall_3_bins": 0.9981921487603306,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.05058706342579805
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.05092035814044484,
+      "median_m": 0.04128001618945312,
+      "recall_half_bin": 0.640581955922865,
+      "recall_1_bins": 0.921918044077135,
+      "recall_3_bins": 0.9981921487603306,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.050917414698864384
+     }
+    },
+    "validation 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.028248737312939674,
+      "median_m": 0.021957455419921872,
+      "recall_half_bin": 0.8652720385674931,
+      "recall_1_bins": 0.9946625344352618,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.028248717228748575
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.10573198525873198,
+      "median_m": 0.09222131276367188,
+      "recall_half_bin": 0.3384125344352617,
+      "recall_1_bins": 0.6136363636363636,
+      "recall_3_bins": 0.9771005509641874,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.10570429100517627
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.09693761889867764,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.362517217630854,
+      "recall_1_bins": 0.6587465564738292,
+      "recall_3_bins": 0.987603305785124,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.12925861564970653
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.04107536212175216,
+      "median_m": 0.03425363045507812,
+      "recall_half_bin": 0.7366563360881543,
+      "recall_1_bins": 0.9725378787878788,
+      "recall_3_bins": 0.9985365013774105,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.04106925446016701
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.041253165028890044,
+      "median_m": 0.03425363045507812,
+      "recall_half_bin": 0.7380337465564738,
+      "recall_1_bins": 0.9715909090909091,
+      "recall_3_bins": 0.9985365013774105,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.04125143756693849
+     }
+    },
+    "validation 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.02041036759499959,
+      "median_m": 0.014931069685546874,
+      "recall_half_bin": 0.9366391184573003,
+      "recall_1_bins": 0.9991391184573003,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.020410326466711193
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.0905067185023035,
+      "median_m": 0.08168173416210937,
+      "recall_half_bin": 0.393767217630854,
+      "recall_1_bins": 0.6883608815426997,
+      "recall_3_bins": 0.9895833333333334,
+      "over_1m": 8.608815426997245e-05,
+      "moved_target_mae_m": 0.09047670009433927
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.09709459036466259,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3639807162534435,
+      "recall_1_bins": 0.65616391184573,
+      "recall_3_bins": 0.9888946280991735,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.12884013435537472
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.038148810829137465,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7666150137741047,
+      "recall_1_bins": 0.9838154269972452,
+      "recall_3_bins": 0.9987947658402204,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03814613926252626
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.03825082707489843,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7665289256198347,
+      "recall_1_bins": 0.9836432506887053,
+      "recall_3_bins": 0.9986225895316805,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.038241249130911086
+     }
+    },
+    "validation 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.014411262613362119,
+      "median_m": 0.009661280384765625,
+      "recall_half_bin": 0.9807162534435262,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.014411221411234786
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.07792770275107166,
+      "median_m": 0.07465534842773437,
+      "recall_half_bin": 0.4393078512396694,
+      "recall_1_bins": 0.7465564738292011,
+      "recall_3_bins": 0.996986914600551,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.0778888086812582
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.09703494563349424,
+      "median_m": 0.08519492702929687,
+      "recall_half_bin": 0.3704373278236915,
+      "recall_1_bins": 0.6664084022038568,
+      "recall_3_bins": 0.9902720385674931,
+      "over_1m": 8.608815426997245e-05,
+      "moved_target_mae_m": 0.1281641737311198
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.03745748321432699,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7764290633608816,
+      "recall_1_bins": 0.9859676308539945,
+      "recall_3_bins": 0.9986225895316805,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.037456491852747104
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.03746431117475111,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7773760330578512,
+      "recall_1_bins": 0.9860537190082644,
+      "recall_3_bins": 0.9986225895316805,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03746325490874483
+     }
+    },
+    "validation 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.010179970827612385,
+      "median_m": 0.0061480875175781245,
+      "recall_half_bin": 0.9972451790633609,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.010179920358698347
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.06744073417122734,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.49449035812672176,
+      "recall_1_bins": 0.8057851239669421,
+      "recall_3_bins": 0.9996556473829201,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.06739273893544839
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.09690449918148376,
+      "median_m": 0.08519492702929687,
+      "recall_half_bin": 0.36957644628099173,
+      "recall_1_bins": 0.6566804407713499,
+      "recall_3_bins": 0.9870006887052342,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.1294159077981987
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.037460959920716776,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7814221763085399,
+      "recall_1_bins": 0.9860537190082644,
+      "recall_3_bins": 0.9986225895316805,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03746116910642777
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.03747189399063711,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7838326446280992,
+      "recall_1_bins": 0.9859676308539945,
+      "recall_3_bins": 0.9986225895316805,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03747081069957957
+     }
+    },
+    "validation 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 11616,
+      "mae_m": 0.00711714992282968,
+      "median_m": 0.004391491083984375,
+      "recall_half_bin": 0.9998278236914601,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.007117105730225363
+     },
+     "histogram, tallest bar": {
+      "streams": 11616,
+      "mae_m": 0.059691864851400774,
+      "median_m": 0.04128001618945312,
+      "recall_half_bin": 0.5451101928374655,
+      "recall_1_bins": 0.8539944903581267,
+      "recall_3_bins": 0.9998278236914601,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.05962902887517647
+     },
+     "area-optimized circuit": {
+      "streams": 11616,
+      "mae_m": 0.10062346699144915,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.36664944903581265,
+      "recall_1_bins": 0.6572830578512396,
+      "recall_3_bins": 0.990358126721763,
+      "over_1m": 8.608815426997245e-05,
+      "moved_target_mae_m": 0.13203698585421228
+     },
+     "k4 (no gate)": {
+      "streams": 11616,
+      "mae_m": 0.038071130199004086,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7691115702479339,
+      "recall_1_bins": 0.9857954545454546,
+      "recall_3_bins": 0.9987086776859504,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03807205636080184
+     },
+     "k4 + gate": {
+      "streams": 11616,
+      "mae_m": 0.038089191203207994,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7712637741046832,
+      "recall_1_bins": 0.9860537190082644,
+      "recall_3_bins": 0.9987086776859504,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.038089365389262435
+     }
+    },
+    "architecture 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.09033762585930966,
+      "median_m": 0.06411576982617187,
+      "recall_half_bin": 0.44808093342295297,
+      "recall_1_bins": 0.753209933991693,
+      "recall_3_bins": 0.9935801320166141,
+      "over_1m": 0.0003102218085931441,
+      "moved_target_mae_m": 0.08496471077484415
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.22842659517686942,
+      "median_m": 0.13086643430273437,
+      "recall_half_bin": 0.21764645054547335,
+      "recall_1_bins": 0.41923030522379057,
+      "recall_3_bins": 0.894085104182824,
+      "over_1m": 0.007798631577133206,
+      "moved_target_mae_m": 0.6149300930984125
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.4142534099656494,
+      "median_m": 0.12032685570117187,
+      "recall_half_bin": 0.2479706323354532,
+      "recall_1_bins": 0.4630577529600331,
+      "recall_3_bins": 0.8950760905158299,
+      "over_1m": 0.012270995984351033,
+      "moved_target_mae_m": 0.31681896635359835
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.360759370495478,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.3819692191027696,
+      "recall_1_bins": 0.660108922323906,
+      "recall_3_bins": 0.9645313065508505,
+      "over_1m": 0.008324285197249367,
+      "moved_target_mae_m": 0.25150295568362285
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.15135874452792658,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.38419247539768714,
+      "recall_1_bins": 0.6662444203160816,
+      "recall_3_bins": 0.9721403581338435,
+      "over_1m": 0.002507626286127915,
+      "moved_target_mae_m": 0.12867683296252658
+     }
+    },
+    "architecture 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.055658649526167926,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.5929459007634903,
+      "recall_1_bins": 0.8868552125881116,
+      "recall_3_bins": 0.9995432845595712,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.055658641384818956
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.14342668509313986,
+      "median_m": 0.11681366283398437,
+      "recall_half_bin": 0.2515554176791962,
+      "recall_1_bins": 0.48163659238577805,
+      "recall_3_bins": 0.9366975165020768,
+      "over_1m": 0.00026713544628854073,
+      "moved_target_mae_m": 0.16682236919226262
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.1317158603470263,
+      "median_m": 0.09222131276367188,
+      "recall_half_bin": 0.3431570239387829,
+      "recall_1_bins": 0.6168157454802405,
+      "recall_3_bins": 0.971752580873102,
+      "over_1m": 0.0016545163124967685,
+      "moved_target_mae_m": 0.14636702248742958
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.08797424827907807,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5238267583544457,
+      "recall_1_bins": 0.8281715871292419,
+      "recall_3_bins": 0.9959326473984454,
+      "over_1m": 0.0006807645244127329,
+      "moved_target_mae_m": 0.07923695182854382
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.06916185569667943,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5243696465194837,
+      "recall_1_bins": 0.8295934370852938,
+      "recall_3_bins": 0.9962084001171949,
+      "over_1m": 0.0002240490839839374,
+      "moved_target_mae_m": 0.06814828254388812
+     }
+    },
+    "architecture 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.03934540550207719,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.7439894524585078,
+      "recall_1_bins": 0.9682367337090464,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.039345394064276444
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.12166328045907131,
+      "median_m": 0.10276089136523436,
+      "recall_half_bin": 0.29302173276114646,
+      "recall_1_bins": 0.5465160367440498,
+      "recall_3_bins": 0.9642986401944057,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.1216284548687767
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.09758240679421593,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.367044103200455,
+      "recall_1_bins": 0.6575926787653172,
+      "recall_3_bins": 0.989254261241232,
+      "over_1m": 0.00012925908691381003,
+      "moved_target_mae_m": 0.12604485859885856
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.04789136917994724,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6764903572721163,
+      "recall_1_bins": 0.9365337883253193,
+      "recall_3_bins": 0.9997845681884769,
+      "over_1m": 2.5851817382762007e-05,
+      "moved_target_mae_m": 0.047833247564900115
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.04720049193404649,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6763093945504369,
+      "recall_1_bins": 0.9368353928614515,
+      "recall_3_bins": 0.9996639263740241,
+      "over_1m": 1.7234544921841338e-05,
+      "moved_target_mae_m": 0.04720197873358126
+     }
+    },
+    "architecture 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.027934515694355618,
+      "median_m": 0.021957455419921872,
+      "recall_half_bin": 0.8683797804318977,
+      "recall_1_bins": 0.9949675128828224,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.02793449646998098
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.1030037493201062,
+      "median_m": 0.09222131276367188,
+      "recall_half_bin": 0.33677162504524066,
+      "recall_1_bins": 0.6211071471657791,
+      "recall_3_bins": 0.9834548368750323,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.10296114732244777
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.09736173562654943,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.36869861951295174,
+      "recall_1_bins": 0.6587560105475415,
+      "recall_3_bins": 0.9905210002929873,
+      "over_1m": 3.4469089843682676e-05,
+      "moved_target_mae_m": 0.12592084651145766
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.03670109636278102,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.7866880375023697,
+      "recall_1_bins": 0.9823259741826517,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03671256370225232
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.03690983201352038,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7851627802767868,
+      "recall_1_bins": 0.9818520241973011,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.0369197183791511
+     }
+    },
+    "architecture 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.019874798385189442,
+      "median_m": 0.014931069685546874,
+      "recall_half_bin": 0.9474346379883839,
+      "recall_1_bins": 0.9997845681884769,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.019874771344676332
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.08768445590196687,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.385398893542216,
+      "recall_1_bins": 0.6952415421470796,
+      "recall_3_bins": 0.9943901556279406,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.08762987523416665
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.0971778369919908,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.36831084225221034,
+      "recall_1_bins": 0.6592988987125795,
+      "recall_3_bins": 0.990770901194354,
+      "over_1m": 8.617272460920669e-05,
+      "moved_target_mae_m": 0.12594354170983021
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.03395955354063061,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8186581183323854,
+      "recall_1_bins": 0.991744652982438,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03396509809122748
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.034095040111046866,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8177533047239888,
+      "recall_1_bins": 0.991736035709977,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.0340911995229849
+     }
+    },
+    "architecture 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.014103463025604952,
+      "median_m": 0.009661280384765625,
+      "recall_half_bin": 0.9829033314375334,
+      "recall_1_bins": 0.9999913827275391,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.014103428767636308
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.07557905966188329,
+      "median_m": 0.07641194486132812,
+      "recall_half_bin": 0.43907588370129086,
+      "recall_1_bins": 0.7607845164848422,
+      "recall_3_bins": 0.9982679282353549,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.075509865361381
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.09665140795515612,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.368345311342054,
+      "recall_1_bins": 0.6575840614928563,
+      "recall_3_bins": 0.990443444840839,
+      "over_1m": 4.3086362304603345e-05,
+      "moved_target_mae_m": 0.12634389911970975
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.03365585295302111,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8242076417972184,
+      "recall_1_bins": 0.9925805284111473,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.033662998537032876
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.033776294077725144,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8238457163538597,
+      "recall_1_bins": 0.9925977629560692,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03377630997238784
+     }
+    },
+    "architecture 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.009937156014603163,
+      "median_m": 0.0061480875175781245,
+      "recall_half_bin": 0.9969322510039123,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.009937116324141109
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.06604895697854005,
+      "median_m": 0.06235917339257812,
+      "recall_half_bin": 0.49164124571290696,
+      "recall_1_bins": 0.8202350791927339,
+      "recall_3_bins": 0.9994743463798839,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.06596479516088916
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.09626663483890145,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.36798338589869534,
+      "recall_1_bins": 0.6567826551539907,
+      "recall_3_bins": 0.9911500611826345,
+      "over_1m": 2.5851817382762007e-05,
+      "moved_target_mae_m": 0.12618599601935498
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.03354862850457777,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8237940127190941,
+      "recall_1_bins": 0.9934250211123176,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.033556248193745676
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.03367257655507677,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8230529272874549,
+      "recall_1_bins": 0.9934077865673957,
+      "recall_3_bins": 0.9999913827275391,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.03367310844422403
+     }
+    },
+    "architecture 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 116046,
+      "mae_m": 0.007057382935696572,
+      "median_m": 0.004391491083984375,
+      "recall_half_bin": 0.9996208400117195,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.007057345181715162
+     },
+     "histogram, tallest bar": {
+      "streams": 116046,
+      "mae_m": 0.05926309550334413,
+      "median_m": 0.04128001618945312,
+      "recall_half_bin": 0.5351757061854782,
+      "recall_1_bins": 0.8656050186994813,
+      "recall_3_bins": 0.9996725436464851,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.05916274600835139
+     },
+     "area-optimized circuit": {
+      "streams": 116046,
+      "mae_m": 0.09681610179792251,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.367802423177016,
+      "recall_1_bins": 0.6574720369508643,
+      "recall_3_bins": 0.9908915430088069,
+      "over_1m": 3.4469089843682676e-05,
+      "moved_target_mae_m": 0.12576780097671345
+     },
+     "k4 (no gate)": {
+      "streams": 116046,
+      "mae_m": 0.03357711387985638,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8239146545335471,
+      "recall_1_bins": 0.9928390465849749,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.033584927974681295
+     },
+     "k4 + gate": {
+      "streams": 116046,
+      "mae_m": 0.03370221664932871,
+      "median_m": 0.028983841154296874,
+      "recall_half_bin": 0.8235527290901884,
+      "recall_1_bins": 0.9926667011357565,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.033702750552563665
+     }
+    },
+    "train 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.08588302808041062,
+      "median_m": 0.06235917339257812,
+      "recall_half_bin": 0.45595833333333335,
+      "recall_1_bins": 0.75785,
+      "recall_3_bins": 0.9941,
+      "over_1m": 0.00038333333333333334,
+      "moved_target_mae_m": 0.08395974183842479
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.2178199959671391,
+      "median_m": 0.12910983786914063,
+      "recall_half_bin": 0.22464166666666666,
+      "recall_1_bins": 0.43199166666666666,
+      "recall_3_bins": 0.8968666666666667,
+      "over_1m": 0.00805,
+      "moved_target_mae_m": 0.6019838881845273
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.4382221101179932,
+      "median_m": 0.12208345213476562,
+      "recall_half_bin": 0.2446,
+      "recall_1_bins": 0.4578583333333333,
+      "recall_3_bins": 0.8931583333333334,
+      "over_1m": 0.013816666666666666,
+      "moved_target_mae_m": 0.33073307421825965
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.3863740790605893,
+      "median_m": 0.07465534842773437,
+      "recall_half_bin": 0.3737333333333333,
+      "recall_1_bins": 0.6548583333333333,
+      "recall_3_bins": 0.964275,
+      "over_1m": 0.009233333333333333,
+      "moved_target_mae_m": 0.2643287090623514
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.16329886781068517,
+      "median_m": 0.07465534842773437,
+      "recall_half_bin": 0.3771583333333333,
+      "recall_1_bins": 0.6616416666666667,
+      "recall_3_bins": 0.9717333333333333,
+      "over_1m": 0.003075,
+      "moved_target_mae_m": 0.1361746222326043
+     }
+    },
+    "train 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.05528329743529473,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.6008666666666667,
+      "recall_1_bins": 0.890425,
+      "recall_3_bins": 0.9994166666666666,
+      "over_1m": 0.00013333333333333334,
+      "moved_target_mae_m": 0.05528329581100055
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.14328715716058962,
+      "median_m": 0.11330046996679687,
+      "recall_half_bin": 0.2587083333333333,
+      "recall_1_bins": 0.49345,
+      "recall_3_bins": 0.9387416666666667,
+      "over_1m": 0.000475,
+      "moved_target_mae_m": 0.16809343968755944
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.14081494000102676,
+      "median_m": 0.09222131276367188,
+      "recall_half_bin": 0.339725,
+      "recall_1_bins": 0.6127916666666666,
+      "recall_3_bins": 0.9689083333333334,
+      "over_1m": 0.0022583333333333335,
+      "moved_target_mae_m": 0.1505366862611519
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.09365954707905733,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.51595,
+      "recall_1_bins": 0.8218416666666667,
+      "recall_3_bins": 0.99525,
+      "over_1m": 0.000925,
+      "moved_target_mae_m": 0.0812722319642742
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.07199335563274016,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.5161333333333333,
+      "recall_1_bins": 0.8224916666666666,
+      "recall_3_bins": 0.99535,
+      "over_1m": 0.0004166666666666667,
+      "moved_target_mae_m": 0.07061275394833509
+     }
+    },
+    "train 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.039075533384975124,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.7492166666666666,
+      "recall_1_bins": 0.96765,
+      "recall_3_bins": 0.9999083333333333,
+      "over_1m": 6.666666666666667e-05,
+      "moved_target_mae_m": 0.03907552546185034
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.11949363367085312,
+      "median_m": 0.10100429493164062,
+      "recall_half_bin": 0.3003166666666667,
+      "recall_1_bins": 0.5602916666666666,
+      "recall_3_bins": 0.9655333333333334,
+      "over_1m": 9.166666666666667e-05,
+      "moved_target_mae_m": 0.11999042745752722
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09991786793815535,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.369625,
+      "recall_1_bins": 0.6594416666666667,
+      "recall_3_bins": 0.9883666666666666,
+      "over_1m": 0.000325,
+      "moved_target_mae_m": 0.12928623232961
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.04957914859435815,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6613083333333334,
+      "recall_1_bins": 0.9309416666666667,
+      "recall_3_bins": 0.999475,
+      "over_1m": 7.5e-05,
+      "moved_target_mae_m": 0.04930194031559434
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.04997138910158042,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6603083333333334,
+      "recall_1_bins": 0.92985,
+      "recall_3_bins": 0.999375,
+      "over_1m": 8.333333333333333e-05,
+      "moved_target_mae_m": 0.04968216602056468
+     }
+    },
+    "train 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.02748662765196743,
+      "median_m": 0.020200858986328125,
+      "recall_half_bin": 0.8749666666666667,
+      "recall_1_bins": 0.9953916666666667,
+      "recall_3_bins": 0.9999416666666666,
+      "over_1m": 5e-05,
+      "moved_target_mae_m": 0.027486615447424746
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.10101155864659041,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.3474083333333333,
+      "recall_1_bins": 0.6342916666666667,
+      "recall_3_bins": 0.9834166666666667,
+      "over_1m": 0.00010833333333333333,
+      "moved_target_mae_m": 0.1012389228082329
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09783112224260156,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3696083333333333,
+      "recall_1_bins": 0.6602,
+      "recall_3_bins": 0.9894,
+      "over_1m": 0.0002,
+      "moved_target_mae_m": 0.12879967007030294
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.03889953399788211,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.76775,
+      "recall_1_bins": 0.9800083333333334,
+      "recall_3_bins": 0.9996833333333334,
+      "over_1m": 6.666666666666667e-05,
+      "moved_target_mae_m": 0.038721933521314755
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.038795525341233636,
+      "median_m": 0.03249703402148437,
+      "recall_half_bin": 0.7656,
+      "recall_1_bins": 0.9794916666666666,
+      "recall_3_bins": 0.9996666666666667,
+      "over_1m": 5e-05,
+      "moved_target_mae_m": 0.03869462147735867
+     }
+    },
+    "train 256-512": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.019504387373670256,
+      "median_m": 0.014931069685546874,
+      "recall_half_bin": 0.9493,
+      "recall_1_bins": 0.9997166666666667,
+      "recall_3_bins": 0.999975,
+      "over_1m": 2.5e-05,
+      "moved_target_mae_m": 0.019504365841497583
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.08596438872252525,
+      "median_m": 0.08168173416210937,
+      "recall_half_bin": 0.397675,
+      "recall_1_bins": 0.7041416666666667,
+      "recall_3_bins": 0.99385,
+      "over_1m": 4.1666666666666665e-05,
+      "moved_target_mae_m": 0.08591375225004
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09733503775964646,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.36873333333333336,
+      "recall_1_bins": 0.6607166666666666,
+      "recall_3_bins": 0.9897,
+      "over_1m": 0.00018333333333333334,
+      "moved_target_mae_m": 0.12822467137172455
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.03523053612328019,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.8046083333333334,
+      "recall_1_bins": 0.9912083333333334,
+      "recall_3_bins": 0.9997166666666667,
+      "over_1m": 3.3333333333333335e-05,
+      "moved_target_mae_m": 0.03523911456231608
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.03540711808340754,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.8034833333333333,
+      "recall_1_bins": 0.9912833333333333,
+      "recall_3_bins": 0.9997166666666667,
+      "over_1m": 4.1666666666666665e-05,
+      "moved_target_mae_m": 0.03540800393307344
+     }
+    },
+    "train 512-1024": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.013810858323592419,
+      "median_m": 0.009661280384765625,
+      "recall_half_bin": 0.9844166666666667,
+      "recall_1_bins": 0.9999916666666666,
+      "recall_3_bins": 0.9999916666666666,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.013810824897798061
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.07387632574579951,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.45113333333333333,
+      "recall_1_bins": 0.7717416666666667,
+      "recall_3_bins": 0.9982583333333334,
+      "over_1m": 5.833333333333333e-05,
+      "moved_target_mae_m": 0.07381357849653998
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09774899104533098,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3715583333333333,
+      "recall_1_bins": 0.6606583333333333,
+      "recall_3_bins": 0.9896666666666667,
+      "over_1m": 0.00020833333333333335,
+      "moved_target_mae_m": 0.12777011298999558
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.035097688957815,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.811375,
+      "recall_1_bins": 0.9917916666666666,
+      "recall_3_bins": 0.99965,
+      "over_1m": 6.666666666666667e-05,
+      "moved_target_mae_m": 0.03501136783203951
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.03515515866976541,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.8109083333333333,
+      "recall_1_bins": 0.9918416666666666,
+      "recall_3_bins": 0.9996916666666666,
+      "over_1m": 3.3333333333333335e-05,
+      "moved_target_mae_m": 0.03506165057649375
+     }
+    },
+    "train 1024-2048": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.009778373576299662,
+      "median_m": 0.0061480875175781245,
+      "recall_half_bin": 0.9969166666666667,
+      "recall_1_bins": 0.9999916666666666,
+      "recall_3_bins": 0.9999916666666666,
+      "over_1m": 8.333333333333334e-06,
+      "moved_target_mae_m": 0.009778341669372255
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.06442957223788778,
+      "median_m": 0.053576191224609375,
+      "recall_half_bin": 0.503025,
+      "recall_1_bins": 0.8324666666666667,
+      "recall_3_bins": 0.99955,
+      "over_1m": 3.3333333333333335e-05,
+      "moved_target_mae_m": 0.06435349113083906
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09758760346923781,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.3716333333333333,
+      "recall_1_bins": 0.6585583333333334,
+      "recall_3_bins": 0.9894833333333334,
+      "over_1m": 0.00016666666666666666,
+      "moved_target_mae_m": 0.12820029922519807
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.035432713793412576,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.811125,
+      "recall_1_bins": 0.991625,
+      "recall_3_bins": 0.9996666666666667,
+      "over_1m": 8.333333333333333e-05,
+      "moved_target_mae_m": 0.03525127956442745
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.035571800993239915,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.8102416666666666,
+      "recall_1_bins": 0.991525,
+      "recall_3_bins": 0.9996666666666667,
+      "over_1m": 8.333333333333333e-05,
+      "moved_target_mae_m": 0.035382473988220524
+     }
+    },
+    "train 2048-4096": {
+     "histogram, sub-bin fit": {
+      "streams": 120000,
+      "mae_m": 0.006901455929145876,
+      "median_m": 0.004391491083984375,
+      "recall_half_bin": 0.9997416666666666,
+      "recall_1_bins": 1.0,
+      "recall_3_bins": 1.0,
+      "over_1m": 0.0,
+      "moved_target_mae_m": 0.006901420080312002
+     },
+     "histogram, tallest bar": {
+      "streams": 120000,
+      "mae_m": 0.05745609347838451,
+      "median_m": 0.04128001618945312,
+      "recall_half_bin": 0.5523833333333333,
+      "recall_1_bins": 0.874825,
+      "recall_3_bins": 0.9998666666666667,
+      "over_1m": 1.6666666666666667e-05,
+      "moved_target_mae_m": 0.05736416615036048
+     },
+     "area-optimized circuit": {
+      "streams": 120000,
+      "mae_m": 0.09728619192408354,
+      "median_m": 0.08695152346289062,
+      "recall_half_bin": 0.37119166666666664,
+      "recall_1_bins": 0.6592416666666666,
+      "recall_3_bins": 0.9892833333333333,
+      "over_1m": 0.000225,
+      "moved_target_mae_m": 0.1286532185457789
+     },
+     "k4 (no gate)": {
+      "streams": 120000,
+      "mae_m": 0.03541243908532814,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.812525,
+      "recall_1_bins": 0.99185,
+      "recall_3_bins": 0.9997166666666667,
+      "over_1m": 8.333333333333333e-05,
+      "moved_target_mae_m": 0.03523145975878206
+     },
+     "k4 + gate": {
+      "streams": 120000,
+      "mae_m": 0.03555238529912269,
+      "median_m": 0.030740437587890624,
+      "recall_half_bin": 0.8115583333333334,
+      "recall_1_bins": 0.9918083333333333,
+      "recall_3_bins": 0.9997166666666667,
+      "over_1m": 8.333333333333333e-05,
+      "moved_target_mae_m": 0.035363184935442854
+     }
+    }
+   }
+  },
+  "v4-all-recordings-trusted": {
+   "what": "every trusted ray (train capped at 60,000), 16 to 256 photons, 20 draws, target = full-recording sub-bin fit",
+   "bands": {
+    "validation 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 87620,
+      "mae_m": 0.10969236074401169,
+      "median_m": 0.07289875199414061,
+      "recall_half_bin": 0.4014950924446473,
+      "recall_1_bins": 0.6917712850947272,
+      "recall_3_bins": 0.9854142889751198,
+      "over_1m": 0.0014266149280986076,
+      "moved_target_mae_m": 0.10356418119098107
+     },
+     "histogram, tallest bar": {
+      "streams": 87620,
+      "mae_m": 0.31944475548404017,
+      "median_m": 0.15018899507226563,
+      "recall_half_bin": 0.18753709198813057,
+      "recall_1_bins": 0.36141291942478887,
+      "recall_3_bins": 0.8279045879936088,
+      "over_1m": 0.014574298105455375,
+      "moved_target_mae_m": 0.8459425503010379
+     },
+     "area-optimized circuit": {
+      "streams": 87620,
+      "mae_m": 0.48247545173041795,
+      "median_m": 0.12910983786914063,
+      "recall_half_bin": 0.23229856197215248,
+      "recall_1_bins": 0.43419310659666743,
+      "recall_3_bins": 0.8702008673818763,
+      "over_1m": 0.018591645742981056,
+      "moved_target_mae_m": 0.37436130786580424
+     },
+     "k4 (no gate)": {
+      "streams": 87620,
+      "mae_m": 0.4226634842408759,
+      "median_m": 0.08343833059570312,
+      "recall_half_bin": 0.3513124857338507,
+      "recall_1_bins": 0.6230312713992239,
+      "recall_3_bins": 0.9489157726546451,
+      "over_1m": 0.012782469755763524,
+      "moved_target_mae_m": 0.3112353478677331
+     },
+     "k4 + gate": {
+      "streams": 87620,
+      "mae_m": 0.18193428685634191,
+      "median_m": 0.08168173416210937,
+      "recall_half_bin": 0.3570760100433691,
+      "recall_1_bins": 0.6300730426843186,
+      "recall_3_bins": 0.9595297877196987,
+      "over_1m": 0.004325496461994979,
+      "moved_target_mae_m": 0.1552517884820161
+     }
+    },
+    "validation 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 87620,
+      "mae_m": 0.06482538219349314,
+      "median_m": 0.051819594791015625,
+      "recall_half_bin": 0.5383930609449897,
+      "recall_1_bins": 0.83891805523853,
+      "recall_3_bins": 0.9970212280301302,
+      "over_1m": 0.000410865099292399,
+      "moved_target_mae_m": 0.06482538310876562
+     },
+     "histogram, tallest bar": {
+      "streams": 87620,
+      "mae_m": 0.17785965653797436,
+      "median_m": 0.13437962716992186,
+      "recall_half_bin": 0.2172106824925816,
+      "recall_1_bins": 0.41319333485505594,
+      "recall_3_bins": 0.8801871718785665,
+      "over_1m": 0.001723350833143118,
+      "moved_target_mae_m": 0.2297592896464751
+     },
+     "area-optimized circuit": {
+      "streams": 87620,
+      "mae_m": 0.16675378112741082,
+      "median_m": 0.09749110206445312,
+      "recall_half_bin": 0.3201666286236019,
+      "recall_1_bins": 0.5801301072814425,
+      "recall_3_bins": 0.953948870120977,
+      "over_1m": 0.004428212736818078,
+      "moved_target_mae_m": 0.16731972864493824
+     },
+     "k4 (no gate)": {
+      "streams": 87620,
+      "mae_m": 0.11602064964364014,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.4775507874914403,
+      "recall_1_bins": 0.7860305866240584,
+      "recall_3_bins": 0.9904587993608766,
+      "over_1m": 0.0019972608993380505,
+      "moved_target_mae_m": 0.10183684984621148
+     },
+     "k4 + gate": {
+      "streams": 87620,
+      "mae_m": 0.08051918792412875,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.48098607623830175,
+      "recall_1_bins": 0.7901392376169825,
+      "recall_3_bins": 0.9915772654645059,
+      "over_1m": 0.0008559689568591645,
+      "moved_target_mae_m": 0.07862015811784345
+     }
+    },
+    "validation 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 87620,
+      "mae_m": 0.04560189310684899,
+      "median_m": 0.03601022688867187,
+      "recall_half_bin": 0.6861104770600319,
+      "recall_1_bins": 0.9410408582515407,
+      "recall_3_bins": 0.9992581602373887,
+      "over_1m": 0.00025108422734535494,
+      "moved_target_mae_m": 0.045601884737244996
+     },
+     "histogram, tallest bar": {
+      "streams": 87620,
+      "mae_m": 0.15052499963800672,
+      "median_m": 0.11857025926757812,
+      "recall_half_bin": 0.24881305637982196,
+      "recall_1_bins": 0.4693677242638667,
+      "recall_3_bins": 0.9162519972608993,
+      "over_1m": 0.0005364072129650765,
+      "moved_target_mae_m": 0.15121979980810019
+     },
+     "area-optimized circuit": {
+      "streams": 87620,
+      "mae_m": 0.11002359568779126,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.34632503994521796,
+      "recall_1_bins": 0.6256105911892262,
+      "recall_3_bins": 0.9746062542798448,
+      "over_1m": 0.001563569961196074,
+      "moved_target_mae_m": 0.1340795077169428
+     },
+     "k4 (no gate)": {
+      "streams": 87620,
+      "mae_m": 0.05715981176431618,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.590378908924903,
+      "recall_1_bins": 0.8949440766948186,
+      "recall_3_bins": 0.9975233964848208,
+      "over_1m": 0.0003880392604428213,
+      "moved_target_mae_m": 0.05715256056455761
+     },
+     "k4 + gate": {
+      "streams": 87620,
+      "mae_m": 0.05719125350815402,
+      "median_m": 0.046549805490234374,
+      "recall_half_bin": 0.5925701894544625,
+      "recall_1_bins": 0.8943620178041543,
+      "recall_3_bins": 0.9973978543711481,
+      "over_1m": 0.0003538005021684547,
+      "moved_target_mae_m": 0.0571809920799794
+     }
+    },
+    "validation 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 87620,
+      "mae_m": 0.03238388171328218,
+      "median_m": 0.023714051853515623,
+      "recall_half_bin": 0.8186601232595297,
+      "recall_1_bins": 0.985996347865784,
+      "recall_3_bins": 0.9997260899338051,
+      "over_1m": 0.0001483679525222552,
+      "moved_target_mae_m": 0.0323838608039557
+     },
+     "histogram, tallest bar": {
+      "streams": 87620,
+      "mae_m": 0.13146645314194685,
+      "median_m": 0.10627408423242186,
+      "recall_half_bin": 0.28660123259529785,
+      "recall_1_bins": 0.5270942707144488,
+      "recall_3_bins": 0.9427984478429582,
+      "over_1m": 0.0003652134215932435,
+      "moved_target_mae_m": 0.13148629982239396
+     },
+     "area-optimized circuit": {
+      "streams": 87620,
+      "mae_m": 0.10940727263483904,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.3473293768545994,
+      "recall_1_bins": 0.6271741611504222,
+      "recall_3_bins": 0.9766834056151563,
+      "over_1m": 0.0016206345583200182,
+      "moved_target_mae_m": 0.133403280774917
+     },
+     "k4 (no gate)": {
+      "streams": 87620,
+      "mae_m": 0.048435839690025864,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6576694818534581,
+      "recall_1_bins": 0.9449783154530929,
+      "recall_3_bins": 0.998105455375485,
+      "over_1m": 0.0002624971467701438,
+      "moved_target_mae_m": 0.04844549193828639
+     },
+     "k4 + gate": {
+      "streams": 87620,
+      "mae_m": 0.048283317684773515,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6600661949326638,
+      "recall_1_bins": 0.944921250855969,
+      "recall_3_bins": 0.9980826295366355,
+      "over_1m": 0.00022825838849577722,
+      "moved_target_mae_m": 0.048272656306995815
+     }
+    },
+    "architecture 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 731360,
+      "mae_m": 0.10355209200083758,
+      "median_m": 0.07114215556054687,
+      "recall_half_bin": 0.40775951651717346,
+      "recall_1_bins": 0.7021494202581492,
+      "recall_3_bins": 0.9876927915117042,
+      "over_1m": 0.0008162874644497922,
+      "moved_target_mae_m": 0.09901661164343728
+     },
+     "histogram, tallest bar": {
+      "streams": 731360,
+      "mae_m": 0.29478140247703677,
+      "median_m": 0.14843239863867186,
+      "recall_half_bin": 0.18819596368409539,
+      "recall_1_bins": 0.3666498031065412,
+      "recall_3_bins": 0.8370269087726975,
+      "over_1m": 0.013524119448698316,
+      "moved_target_mae_m": 0.7717905725674811
+     },
+     "area-optimized circuit": {
+      "streams": 731360,
+      "mae_m": 0.45305247160781215,
+      "median_m": 0.12208345213476562,
+      "recall_half_bin": 0.24241823452198644,
+      "recall_1_bins": 0.45423457667906364,
+      "recall_3_bins": 0.8879799278057318,
+      "over_1m": 0.014375957120980092,
+      "moved_target_mae_m": 0.34104507653403304
+     },
+     "k4 (no gate)": {
+      "streams": 731360,
+      "mae_m": 0.4042194092421689,
+      "median_m": 0.07816854129492187,
+      "recall_half_bin": 0.363261594837016,
+      "recall_1_bins": 0.6384106322467731,
+      "recall_3_bins": 0.9567969262743382,
+      "over_1m": 0.010634981404506673,
+      "moved_target_mae_m": 0.2861222236539283
+     },
+     "k4 + gate": {
+      "streams": 731360,
+      "mae_m": 0.1673619369214998,
+      "median_m": 0.07816854129492187,
+      "recall_half_bin": 0.3663271166046817,
+      "recall_1_bins": 0.644590899146795,
+      "recall_3_bins": 0.9660112666812514,
+      "over_1m": 0.0036165499890614744,
+      "moved_target_mae_m": 0.14506096030065543
+     }
+    },
+    "architecture 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 731360,
+      "mae_m": 0.06352677647495658,
+      "median_m": 0.050062998357421874,
+      "recall_half_bin": 0.5450749288995843,
+      "recall_1_bins": 0.8468141544519798,
+      "recall_3_bins": 0.9984740756945963,
+      "over_1m": 0.0002133012469919055,
+      "moved_target_mae_m": 0.06352676837584441
+     },
+     "histogram, tallest bar": {
+      "streams": 731360,
+      "mae_m": 0.17788334248804888,
+      "median_m": 0.13086643430273437,
+      "recall_half_bin": 0.21971669218989281,
+      "recall_1_bins": 0.42050153139356816,
+      "recall_3_bins": 0.8854134762633997,
+      "over_1m": 0.0015272916210894772,
+      "moved_target_mae_m": 0.21616670183767747
+     },
+     "area-optimized circuit": {
+      "streams": 731360,
+      "mae_m": 0.14524131458805767,
+      "median_m": 0.09573450563085938,
+      "recall_half_bin": 0.33060599431196674,
+      "recall_1_bins": 0.5988528221395756,
+      "recall_3_bins": 0.9674989061474514,
+      "over_1m": 0.002368190767884489,
+      "moved_target_mae_m": 0.1518537697061389
+     },
+     "k4 (no gate)": {
+      "streams": 731360,
+      "mae_m": 0.1016325658550349,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.48822741194486985,
+      "recall_1_bins": 0.7968332968715817,
+      "recall_3_bins": 0.9940658499234303,
+      "over_1m": 0.0013768868956464668,
+      "moved_target_mae_m": 0.09126496439494462
+     },
+     "k4 + gate": {
+      "streams": 731360,
+      "mae_m": 0.07683237143293782,
+      "median_m": 0.05708938409179687,
+      "recall_half_bin": 0.4896699299934369,
+      "recall_1_bins": 0.7991973856924086,
+      "recall_3_bins": 0.9947454058192956,
+      "over_1m": 0.0006152920586304966,
+      "moved_target_mae_m": 0.07578260770494387
+     }
+    },
+    "architecture 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 731360,
+      "mae_m": 0.04461367780721044,
+      "median_m": 0.03425363045507812,
+      "recall_half_bin": 0.6952089258367972,
+      "recall_1_bins": 0.9466391380441916,
+      "recall_3_bins": 0.9997689236490921,
+      "over_1m": 0.0001312623058411726,
+      "moved_target_mae_m": 0.044613668739981106
+     },
+     "histogram, tallest bar": {
+      "streams": 731360,
+      "mae_m": 0.14903640284171496,
+      "median_m": 0.11681366283398437,
+      "recall_half_bin": 0.2516982060818202,
+      "recall_1_bins": 0.47694158827390065,
+      "recall_3_bins": 0.9183657842922774,
+      "over_1m": 0.00033772697440385036,
+      "moved_target_mae_m": 0.14962348440840662
+     },
+     "area-optimized circuit": {
+      "streams": 731360,
+      "mae_m": 0.10304069788911124,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.35738760665062347,
+      "recall_1_bins": 0.6425795777729162,
+      "recall_3_bins": 0.9869435025158608,
+      "over_1m": 0.0005209472763071538,
+      "moved_target_mae_m": 0.12664157025277886
+     },
+     "k4 (no gate)": {
+      "streams": 731360,
+      "mae_m": 0.05589911098986338,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.6087685954933275,
+      "recall_1_bins": 0.9038571975497703,
+      "recall_3_bins": 0.9991303872238022,
+      "over_1m": 0.00034866549989061475,
+      "moved_target_mae_m": 0.05558319120497447
+     },
+     "k4 + gate": {
+      "streams": 731360,
+      "mae_m": 0.05526380559818198,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.609710676000875,
+      "recall_1_bins": 0.9038230146576242,
+      "recall_3_bins": 0.9990592868081383,
+      "over_1m": 0.00032131918617370376,
+      "moved_target_mae_m": 0.05527961647540888
+     }
+    },
+    "architecture 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 731360,
+      "mae_m": 0.031501176462505734,
+      "median_m": 0.023714051853515623,
+      "recall_half_bin": 0.8274762087070663,
+      "recall_1_bins": 0.989102493983811,
+      "recall_3_bins": 0.9999029205863049,
+      "over_1m": 6.56311529205863e-05,
+      "moved_target_mae_m": 0.03150116353805369
+     },
+     "histogram, tallest bar": {
+      "streams": 731360,
+      "mae_m": 0.12892540678994965,
+      "median_m": 0.10451748779882812,
+      "recall_half_bin": 0.28968360315029534,
+      "recall_1_bins": 0.538226044629184,
+      "recall_3_bins": 0.9448766681251367,
+      "over_1m": 0.00015997593524392912,
+      "moved_target_mae_m": 0.128934244332175
+     },
+     "area-optimized circuit": {
+      "streams": 731360,
+      "mae_m": 0.10063359763593688,
+      "median_m": 0.08870811989648437,
+      "recall_half_bin": 0.3571291839859987,
+      "recall_1_bins": 0.6439099759352439,
+      "recall_3_bins": 0.9884707941369504,
+      "over_1m": 0.0003965215488952089,
+      "moved_target_mae_m": 0.12557091940233991
+     },
+     "k4 (no gate)": {
+      "streams": 731360,
+      "mae_m": 0.04685428228744505,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6761635856486545,
+      "recall_1_bins": 0.9511799934368848,
+      "recall_3_bins": 0.9995036644060381,
+      "over_1m": 0.0002584226646248086,
+      "moved_target_mae_m": 0.04680811576184873
+     },
+     "k4 + gate": {
+      "streams": 731360,
+      "mae_m": 0.046700530434684834,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6785427149420258,
+      "recall_1_bins": 0.9515642091446073,
+      "recall_3_bins": 0.9995091336687815,
+      "over_1m": 0.0002447495077663531,
+      "moved_target_mae_m": 0.04670404913654327
+     }
+    },
+    "train 16-32": {
+     "histogram, sub-bin fit": {
+      "streams": 1200000,
+      "mae_m": 0.1051759521443776,
+      "median_m": 0.07114215556054687,
+      "recall_half_bin": 0.4108,
+      "recall_1_bins": 0.7049683333333333,
+      "recall_3_bins": 0.9869783333333333,
+      "over_1m": 0.0012058333333333333,
+      "moved_target_mae_m": 0.10073595461582945
+     },
+     "histogram, tallest bar": {
+      "streams": 1200000,
+      "mae_m": 0.3035743397468821,
+      "median_m": 0.14667580220507812,
+      "recall_half_bin": 0.19262166666666666,
+      "recall_1_bins": 0.37280083333333336,
+      "recall_3_bins": 0.838875,
+      "over_1m": 0.014324166666666667,
+      "moved_target_mae_m": 0.8013699467070872
+     },
+     "area-optimized circuit": {
+      "streams": 1200000,
+      "mae_m": 0.4720454105619232,
+      "median_m": 0.12384004856835937,
+      "recall_half_bin": 0.238725,
+      "recall_1_bins": 0.4470591666666667,
+      "recall_3_bins": 0.8826683333333334,
+      "over_1m": 0.01615,
+      "moved_target_mae_m": 0.35580696141552276
+     },
+     "k4 (no gate)": {
+      "streams": 1200000,
+      "mae_m": 0.41531479667732873,
+      "median_m": 0.07992513772851562,
+      "recall_half_bin": 0.35891833333333334,
+      "recall_1_bins": 0.6334541666666667,
+      "recall_3_bins": 0.9550416666666667,
+      "over_1m": 0.011586666666666667,
+      "moved_target_mae_m": 0.2975254532374745
+     },
+     "k4 + gate": {
+      "streams": 1200000,
+      "mae_m": 0.17434689473629672,
+      "median_m": 0.07816854129492187,
+      "recall_half_bin": 0.36294166666666666,
+      "recall_1_bins": 0.640115,
+      "recall_3_bins": 0.9640066666666667,
+      "over_1m": 0.004215,
+      "moved_target_mae_m": 0.14970584468703602
+     }
+    },
+    "train 32-64": {
+     "histogram, sub-bin fit": {
+      "streams": 1200000,
+      "mae_m": 0.06396605616319262,
+      "median_m": 0.050062998357421874,
+      "recall_half_bin": 0.55051,
+      "recall_1_bins": 0.8500941666666667,
+      "recall_3_bins": 0.9980408333333334,
+      "over_1m": 0.00044083333333333333,
+      "moved_target_mae_m": 0.06391304134626562
+     },
+     "histogram, tallest bar": {
+      "streams": 1200000,
+      "mae_m": 0.1771897533309308,
+      "median_m": 0.12910983786914063,
+      "recall_half_bin": 0.22324416666666666,
+      "recall_1_bins": 0.42631166666666664,
+      "recall_3_bins": 0.8870091666666666,
+      "over_1m": 0.0017925,
+      "moved_target_mae_m": 0.21901549501078124
+     },
+     "area-optimized circuit": {
+      "streams": 1200000,
+      "mae_m": 0.15102360260158187,
+      "median_m": 0.09573450563085938,
+      "recall_half_bin": 0.3285766666666667,
+      "recall_1_bins": 0.5936541666666667,
+      "recall_3_bins": 0.9630958333333334,
+      "over_1m": 0.0032608333333333335,
+      "moved_target_mae_m": 0.1574499467706421
+     },
+     "k4 (no gate)": {
+      "streams": 1200000,
+      "mae_m": 0.10682073781414066,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.48300583333333336,
+      "recall_1_bins": 0.7929433333333333,
+      "recall_3_bins": 0.9928525,
+      "over_1m": 0.0018275,
+      "moved_target_mae_m": 0.09598621759427148
+     },
+     "k4 + gate": {
+      "streams": 1200000,
+      "mae_m": 0.08014049217593178,
+      "median_m": 0.05884598052539062,
+      "recall_half_bin": 0.48485666666666666,
+      "recall_1_bins": 0.7951458333333333,
+      "recall_3_bins": 0.9936408333333333,
+      "over_1m": 0.0009541666666666666,
+      "moved_target_mae_m": 0.07838556620114641
+     }
+    },
+    "train 64-128": {
+     "histogram, sub-bin fit": {
+      "streams": 1200000,
+      "mae_m": 0.044810076089510625,
+      "median_m": 0.03425363045507812,
+      "recall_half_bin": 0.6984583333333333,
+      "recall_1_bins": 0.9469491666666666,
+      "recall_3_bins": 0.9994933333333333,
+      "over_1m": 0.0002441666666666667,
+      "moved_target_mae_m": 0.044800611653925466
+     },
+     "histogram, tallest bar": {
+      "streams": 1200000,
+      "mae_m": 0.14782035916912545,
+      "median_m": 0.11505706640039062,
+      "recall_half_bin": 0.25646416666666666,
+      "recall_1_bins": 0.4834466666666667,
+      "recall_3_bins": 0.9202433333333333,
+      "over_1m": 0.0005466666666666667,
+      "moved_target_mae_m": 0.14849994602856065
+     },
+     "area-optimized circuit": {
+      "streams": 1200000,
+      "mae_m": 0.10678718995684303,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.35479916666666667,
+      "recall_1_bins": 0.6377616666666667,
+      "recall_3_bins": 0.98312,
+      "over_1m": 0.001035,
+      "moved_target_mae_m": 0.13101704411186796
+     },
+     "k4 (no gate)": {
+      "streams": 1200000,
+      "mae_m": 0.05854312591296496,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.6008841666666667,
+      "recall_1_bins": 0.9007208333333333,
+      "recall_3_bins": 0.9984,
+      "over_1m": 0.0005808333333333334,
+      "moved_target_mae_m": 0.05808782317635629
+     },
+     "k4 + gate": {
+      "streams": 1200000,
+      "mae_m": 0.057488612318332105,
+      "median_m": 0.04479320905664062,
+      "recall_half_bin": 0.6015225,
+      "recall_1_bins": 0.9006141666666667,
+      "recall_3_bins": 0.9983541666666667,
+      "over_1m": 0.0005341666666666666,
+      "moved_target_mae_m": 0.05738155249384805
+     }
+    },
+    "train 128-256": {
+     "histogram, sub-bin fit": {
+      "streams": 1200000,
+      "mae_m": 0.03163323907674018,
+      "median_m": 0.023714051853515623,
+      "recall_half_bin": 0.8311183333333333,
+      "recall_1_bins": 0.988895,
+      "recall_3_bins": 0.999725,
+      "over_1m": 0.00015833333333333332,
+      "moved_target_mae_m": 0.03163322580541682
+     },
+     "histogram, tallest bar": {
+      "streams": 1200000,
+      "mae_m": 0.12836375407141717,
+      "median_m": 0.10451748779882812,
+      "recall_half_bin": 0.29485083333333334,
+      "recall_1_bins": 0.5436116666666667,
+      "recall_3_bins": 0.9457625,
+      "over_1m": 0.0003575,
+      "moved_target_mae_m": 0.1283915080363245
+     },
+     "area-optimized circuit": {
+      "streams": 1200000,
+      "mae_m": 0.10417479595300956,
+      "median_m": 0.09046471633007812,
+      "recall_half_bin": 0.35623,
+      "recall_1_bins": 0.6397975,
+      "recall_3_bins": 0.985,
+      "over_1m": 0.0009241666666666667,
+      "moved_target_mae_m": 0.1288775734839008
+     },
+     "k4 (no gate)": {
+      "streams": 1200000,
+      "mae_m": 0.048881569810961874,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6686341666666666,
+      "recall_1_bins": 0.9495891666666667,
+      "recall_3_bins": 0.9989116666666666,
+      "over_1m": 0.00048583333333333334,
+      "moved_target_mae_m": 0.048821512437549494
+     },
+     "k4 + gate": {
+      "streams": 1200000,
+      "mae_m": 0.04851103533843259,
+      "median_m": 0.03952341975585937,
+      "recall_half_bin": 0.6708641666666667,
+      "recall_1_bins": 0.9501491666666667,
+      "recall_3_bins": 0.9989358333333334,
+      "over_1m": 0.00046,
+      "moved_target_mae_m": 0.04846612148952644
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,19 @@
+{
+  "circuit": "circuit/circuit.json",
+  "platform": "asap7 (ORFS default, fast-fast libraries)",
+  "clock_period_ps": 1500.0,
+  "setup_worst_slack_ps": 566.255,
+  "hold_worst_slack_ps": 43.888,
+  "min_period_ps": 742.9034151269993,
+  "fmax_mhz": 1346.07,
+  "clock_skew_ps": 2.96512,
+  "die_area_um2": 280.998,
+  "core_area_um2": 246.081,
+  "stdcell_area_um2": 116.494,
+  "stdcells": 1134,
+  "flip_flops": 66,
+  "utilization": 0.473397,
+  "wirelength_um": 2457,
+  "drc_errors": 0,
+  "power_total_w_vectorless": 0.000256583
+}
