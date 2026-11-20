@@ -10,9 +10,9 @@ estimates for exploration, not a manufacturable chip.
 | Path | What it is |
 |---|---|
 | [`synthesis/`](synthesis/README.md) | Python package `asic.synthesis`: Verilog export, Yosys/ASAP7 synthesis and checks, timing and area estimates, controller diagrams |
-| [`designs/photon_core/`](designs/photon_core/README.md) | Flow inputs: `photon_core.v` (exported from a `circuit.json`; currently the final design, same as [`../circuits/final/core.v`](../circuits/final/core.v)), `constraint.sdc` (1.5 ns clock), `config.mk` |
+| [`designs/photon_core/`](designs/photon_core/README.md) | Flow inputs: `photon_core.v` (exported from a `circuit.json`; currently the final design, same as [`../circuits/core.v`](../circuits/core.v)), `constraint.sdc` (1.5 ns clock), `config.mk` |
 | `run_flow.sh` | Runs the whole flow in the `openroad/orfs` image; output goes to `flow/` (scratch, not tracked in git) |
-| `draw_gates.py` | Draws a routed netlist (`6_final.v`) as a gate-symbol schematic. The final design's drawing is [`../circuits/final/gates.svg`](../circuits/final/gates.svg). Needs Yosys and Node.js |
+| `draw_gates.py` | Draws a routed netlist (`6_final.v`) as a gate-symbol schematic. The final design's drawing is [`../circuits/gates.svg`](../circuits/gates.svg). Needs Yosys and Node.js |
 | `results/` | Saved runs, one dated folder each, with a README |
 
 ## Results
@@ -38,4 +38,4 @@ asic/run_flow.sh
 ```
 Then copy the GDS, reports and images from `asic/flow/` into a new dated folder under `results/`.
 To draw the gates of the new netlist, run
-`python asic/draw_gates.py asic/results/<run> -o circuits/<name>/gates.svg`.
+`python asic/draw_gates.py asic/results/<run> -o circuits/gates.svg`.

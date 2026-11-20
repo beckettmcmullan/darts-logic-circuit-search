@@ -1,6 +1,6 @@
 """Draw every cell of a routed ASAP7 netlist as a schematic with real logic-gate symbols.
 
-Usage (from SPAD/):  python asic/draw_gates.py asic/results/<run> -o circuits/<name>/gates.svg
+Usage (from SPAD/):  python asic/draw_gates.py asic/results/<run> -o circuits/gates.svg
 
 Requires Yosys (on PATH) and Node.js with npx (netlistsvg is fetched on first use).
 
@@ -9,7 +9,7 @@ How it works:
   2. This script builds a netlistsvg "skin": one SVG template per ASAP7 cell type found in
      the netlist. A template holds the drawing and the pin positions (<g s:pid=...>).
   3. netlistsvg places and wires the cells using that skin and writes the SVG to --out
-     (default <run>/gates.svg). The final design's drawing is kept in circuits/final/.
+     (default <run>/gates.svg). The final design's drawing is kept in circuits/gates.svg.
 
 The templates are drawn here, not taken from netlistsvg, so that each ASAP7 cell shows the
 logic it implements. Simple cells (INV, BUF, NAND2, OR3, XNOR2, ...)

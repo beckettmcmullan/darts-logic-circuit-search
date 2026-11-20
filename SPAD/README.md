@@ -179,9 +179,9 @@ Two simple tests catch circuits that only look good:
 
 Of the 48 gates, 26 do real work, together with the 4 memory bits. The rest are
 constants or unused, and synthesis removes them. The full diagram of those gates
-is [`circuits/final/controller.svg`](circuits/final/controller.svg), and the
+is [`circuits/controller.svg`](circuits/controller.svg), and the
 Boolean equation for each output is in
-[`circuits/final/equations.txt`](circuits/final/equations.txt).
+[`circuits/equations.txt`](circuits/equations.txt).
 
 ![What each photon does to the guess, by where it lands](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/explainer/10_what_it_learned.webp)
 
@@ -208,7 +208,7 @@ Some other things the results show:
   put 70% of pixels within 34 cm.
 - **It can be made smaller.** Rerunning the search with chip area as the goal
   found a version 8% smaller (24.68 µm², 253 cells, 17 memory bits) with the
-  same accuracy. It is in [`circuits/area-optimized/`](circuits/area-optimized/).
+  same accuracy. It is in [`circuits/area-optimized.json`](circuits/area-optimized.json).
 
 ## 6. From circuit to chip layout
 
@@ -257,7 +257,7 @@ bit. The layout file (GDSII, the standard file format for chip layouts), routed
 circuit and full timing report are in
 [`asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/`](asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md).
 
-**Every gate in the layout:** [`gates.svg`](circuits/final/gates.svg) draws all 381
+**Every gate in the layout:** [`gates.svg`](circuits/gates.svg) draws all 381
 logic cells of the routed circuit with logic-gate symbols. Compound cells such
 as OA21, AOI221 and the half and full adders are drawn as their internal gates
 inside a dashed outline. The image is large, so open it and zoom in.
@@ -292,7 +292,7 @@ it produced, and the hardware flow that turns a circuit into a chip layout.
 | [`neuralnetwork/dataset/`](neuralnetwork/dataset/) | Downloads SP-TransientBench, prepares the photon data and reference distances |
 | [`neuralnetwork/core/`](neuralnetwork/core/) | The circuit model and its exact simulators |
 | [`neuralnetwork/training/`](neuralnetwork/training/) | The search, the physics check and the comparison methods |
-| [`circuits/`](circuits/README.md) | The chosen circuit and its area-optimized version: `circuit.json`, Verilog, Boolean equations and gate diagrams (`controller.svg` for the learned logic, `gates.svg` for every cell of the final layout) |
+| [`circuits/`](circuits/README.md) | The final circuit: `circuit.json`, Verilog, Boolean equations and gate diagrams (`controller.svg` for the learned logic, `gates.svg` for every cell of the layout), plus the smaller area-optimized variant as `area-optimized.json` |
 | [`asic/`](asic/README.md) | Everything hardware: synthesis, the OpenROAD layout flow and the routed layout |
 | [`asic/synthesis/`](asic/synthesis/README.md) | Verilog export, Yosys/ASAP7 synthesis, timing, the area estimate and the diagram script |
 | [`requirements.txt`](requirements.txt) | Python packages |
@@ -319,7 +319,7 @@ To train and shrink a circuit, then check its real area:
 ```bash
 python -m neuralnetwork.training.train_stream --help
 python -m neuralnetwork.training.train_stream --objective area --init circuit \
-  --init-circuit circuits/final/circuit.json --steps 0 --out runs/my-area-run
+  --init-circuit circuits/circuit.json --steps 0 --out runs/my-area-run
 python -m asic.synthesis.synth runs/my-area-run/circuit.json
 ```
 

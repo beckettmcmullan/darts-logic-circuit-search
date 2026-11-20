@@ -7,7 +7,7 @@ start with `/work`.
 
 | File | Role |
 |---|---|
-| `photon_core.v` | The circuit as Verilog. Generated from a `circuit.json`; currently the final design, identical to [`circuits/final/core.v`](../../../circuits/final/core.v). See [`circuits/README.md`](../../../circuits/README.md) to regenerate it. |
+| `photon_core.v` | The circuit as Verilog. Generated from a `circuit.json`; currently the final design, identical to [`circuits/core.v`](../../../circuits/core.v). See [`circuits/README.md`](../../../circuits/README.md) to regenerate it. |
 | `constraint.sdc` | The timing goal: the clock and how late inputs arrive. |
 | `config.mk` | Tells ORFS which design, library and files to use, and how big and dense to make the layout. |
 

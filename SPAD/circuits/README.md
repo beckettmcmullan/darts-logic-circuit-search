@@ -1,18 +1,26 @@
-# Saved circuits
+# The final circuit
 
-Two trained circuits. Each folder holds the circuit description (`circuit.json`), the
-Verilog generated from it (`core.v`), the learned logic as a gate diagram
-(`controller.svg`) and as Boolean equations (`equations.txt`).
-`final/` also has `gates.svg`, every standard cell of its routed chip layout.
+The chosen design (batch 3, random start, 4 memory bits, seed 0). The
+[SPAD README](../README.md) explains how it works and how it was found. Its chip
+layout is in [`../asic/results/`](../asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md).
 
-| Folder | What it is |
+| File | What it is |
 |---|---|
-| `final/` | The chosen design: batch 3, random start, 4 memory bits, seed 0. The [SPAD README](../README.md) explains it. Its layout is in [`../asic/results/`](../asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md). |
-| `area-optimized/` | The same search rerun with chip area as the goal, starting from the final circuit. Smaller, with the same accuracy (see section 5 of the SPAD README). It has no layout run. |
+| `circuit.json` | The trained circuit: which wires each gate reads and its truth table |
+| `core.v` | The circuit as Verilog, generated from `circuit.json` |
+| `controller.svg` | Diagram of the learned gates that do real work |
+| `equations.txt` | The same logic as one Boolean equation per output |
+| `gates.svg` | Every logic cell of the routed ASAP7 layout |
+| `area-optimized.json` | A smaller variant, kept as data only (see below) |
+
+**`area-optimized.json`** is the same search rerun with chip area as the goal,
+starting from this circuit. It is 8% smaller with the same accuracy (section 5 of
+the SPAD README) and has no layout run. Only its `circuit.json` is kept; its Verilog
+and diagrams can be regenerated from it with the commands below.
 
 ## circuit.json
 
-A plain JSON file. Both circuits have the same fields:
+A plain JSON file with these fields (`area-optimized.json` has the same ones):
 
 | Field | Meaning |
 |---|---|
@@ -38,31 +46,36 @@ hand-made comparator, the gates written as one-line truth-table expressions,
 and the registers for the guess, the confidence count and the memory bits. It is
 generated, so do not edit it by hand.
 
-`final/core.v` is the same file as
+`core.v` is the same file as
 [`../asic/designs/photon_core/photon_core.v`](../asic/designs/photon_core/photon_core.v),
 the input to the layout flow. The `asic` copy is the one the flow reads, so you
-can swap in another circuit there without changing these folders.
-`area-optimized/core.v` has not been run through the flow.
+can swap in another circuit there without changing this folder.
 
 ## Gate diagrams
 
 | File | What it shows |
 |---|---|
-| `controller.svg` | The learned gates only, after removing constant gates, pass-throughs and gates whose output is never used. Inputs are on the left (blue), gates in the middle, and the next memory bits and actions on the right (green). The final design keeps 26 of its 48 gates, the area-optimized one 24. |
+| `controller.svg` | The learned gates only, after removing constant gates, pass-throughs and gates whose output is never used. Inputs are on the left (blue), gates in the middle, and the next memory bits and actions on the right (green). This circuit keeps 26 of its 48 gates (the area-optimized one, 24). |
 | `equations.txt` | A minimized Boolean equation for each memory bit and action. Flag combinations the comparator can never produce (for example `near1` without `near2`) are treated as don't-cares, so the equations are shorter than the gates. |
-| `final/gates.svg` | All 381 logic cells of the routed ASAP7 netlist (`6_final.v` in [`../asic/results/`](../asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md)) drawn with logic-gate symbols, including the hand-made comparator, counters and clock buffers. Compound cells are drawn as their internal gates inside a dashed outline. The image is large, so open it and zoom in. |
+| `gates.svg` | All 381 logic cells of the routed ASAP7 netlist (`6_final.v` in [`../asic/results/`](../asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps/README.md)) drawn with logic-gate symbols, including the hand-made comparator, counters and clock buffers. Compound cells are drawn as their internal gates inside a dashed outline. The image is large, so open it and zoom in. |
 
 To redraw `controller.svg` and `equations.txt` (needs `sympy`), from `SPAD/`:
 
 ```bash
-python -m asic.synthesis.diagram circuits/final/circuit.json --out circuits/final --no-netlist
+python -m asic.synthesis.diagram circuits/circuit.json --out circuits --no-netlist --title random-s4-seed0
 ```
 
-This also rewrites `core.v`. The diagram title is taken from the folder name.
+This also rewrites `core.v` (with identical contents). For the area-optimized circuit,
+write to a different folder so these files are not overwritten:
+
+```bash
+python -m asic.synthesis.diagram circuits/area-optimized.json --out runs/area-optimized --no-netlist --title area-optimized
+```
+
 To redraw `gates.svg` from a routed layout (needs Yosys and Node.js):
 
 ```bash
-python asic/draw_gates.py asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps -o circuits/final/gates.svg
+python asic/draw_gates.py asic/results/2026-11-10_final_batch3-random-s4-seed0_asap7_1500ps -o circuits/gates.svg
 ```
 
 ## Regenerate core.v
@@ -73,5 +86,5 @@ JSON and returns the Verilog text. From the `SPAD/` folder:
 
 ```bash
 python -c "import json; from asic.synthesis.verilog import stream_verilog; \
-  print(stream_verilog(json.load(open('circuits/final/circuit.json'))), end='')" > circuits/final/core.v
+  print(stream_verilog(json.load(open('circuits/circuit.json'))), end='')" > circuits/core.v
 ```

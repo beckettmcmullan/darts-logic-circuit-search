@@ -1,7 +1,7 @@
 """Draw a learned photon-stream core: controller logic, Boolean equations and gate netlists.
 
 Usage (from SPAD/):
-  python -m asic.synthesis.diagram circuits/final/circuit.json --out circuits/final --no-netlist
+  python -m asic.synthesis.diagram circuits/circuit.json --out circuits --no-netlist --title random-s4-seed0
 
 Writes into <out>/ (default: diagrams/ next to circuit.json):
   controller.svg   learned gates only, after removing constants, pass-throughs and dead gates
@@ -258,11 +258,12 @@ def main():
     parser.add_argument("--data", type=Path, default=ROOT/"data")
     parser.add_argument("--no-netlist", action="store_true", help="skip Yosys and netlistsvg")
     parser.add_argument("--no-render", action="store_true", help="write netlist JSON but do not run netlistsvg")
+    parser.add_argument("--title", help="name shown in the diagram (default: the folder holding circuit.json)")
     args = parser.parse_args()
     circuit = json.loads(args.circuit.read_text())
     out = args.out or args.circuit.parent/"diagrams"
     out.mkdir(parents=True, exist_ok=True)
-    run = args.circuit.parent.name
+    run = args.title or args.circuit.parent.name
     config, names, columns, values, nodes, outputs = analyse(circuit)
     lines = equations(names, columns, values, outputs)
     live = sum(1 for n in nodes.values() if n[0] in ("gate", "not"))

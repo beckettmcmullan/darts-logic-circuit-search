@@ -27,9 +27,11 @@ python -m asic.synthesis.costs                                  # needs data/asa
 python -m asic.synthesis.synth runs/NAME/circuit.json           # verify and synthesize
 python -m asic.synthesis.timing runs/NAME/circuit.json          # critical-path estimate
 python -m asic.synthesis.area_model --circuits 400              # refit area_model.json (slow: runs Yosys)
-python -m asic.synthesis.diagram circuits/final/circuit.json --out circuits/final --no-netlist
+python -m asic.synthesis.diagram circuits/circuit.json --out circuits --no-netlist --title random-s4-seed0
 ```
 
 `diagram.py` needs `sympy` for the equations. Without `--no-netlist` it also needs Yosys,
 the ASAP7 libraries in `data/`, and Node.js (for `netlistsvg`). The diagram title is
-the name of the folder holding `circuit.json`.
+`--title`, or else the name of the folder holding `circuit.json`. `--out` also gets a
+fresh `core.v`, so point it at a new folder when drawing a circuit other than
+`circuits/circuit.json`.
